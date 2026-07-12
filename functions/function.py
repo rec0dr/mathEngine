@@ -41,6 +41,9 @@ class Function:
     
     def __neg__(self):
         return Combination(Constant(0), Operation.SUBTRACT, self)
+
+    def to_expression(self):
+        return "y = " + str(self)
     
     # Framework for subclasses
     

@@ -1,4 +1,5 @@
 import math
+from .function import Function
 class Parametric:
     def __init__(self, argX, argY, eqString=None, tMin=-10, tMax=10):
         self._data = [argX, argY]
