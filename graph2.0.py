@@ -116,7 +116,7 @@ class Function:
     # Framework for subclasses
     
     def inverse(self):
-        return Parametric(self, Polynomial(1,0), tmin=-scalaX, tmax=scalaX)
+        return Parametric(self, Polynomial(1,0), tMin=-scalaX, tMax=scalaX)
     
     def evaluate(self, x):
         raise NotImplementedError
@@ -217,39 +217,39 @@ class Combination(Function):
 # Classes for eqs
 
 class LinEq(Function):
-    def __init__(self, a, b, c, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def __init__(self, a, b, c, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self.a = float(a)
         self.b = float(b)
         self.c = float(c)
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
         super().__init__(graphColor, graphAcc0)
     
     @classmethod
-    def from_standard(cls, a, b, c, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
-        return cls(a, b, c, eqstr, graphColor, graphAcc0)
+    def from_standard(cls, a, b, c, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+        return cls(a, b, c, eqString, graphColor, graphAcc0)
     
     @classmethod
-    def from_slope_intercept(cls, slope, yint, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
-        return cls(-slope, 1, yint, eqstr, graphColor, graphAcc0)
+    def from_slope_intercept(cls, slope, yInt, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+        return cls(-slope, 1, yInt, eqString, graphColor, graphAcc0)
     
     @classmethod
-    def from_point_slope(cls, x1, y1, slope, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
-        return cls(-slope,1,y1 - slope*x1, eqstr, graphColor, graphAcc0)
+    def from_point_slope(cls, x1, y1, slope, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+        return cls(-slope,1,y1 - slope*x1, eqString, graphColor, graphAcc0)
     
     @classmethod
-    def from_points(cls, x1, y1, x2, y2, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def from_points(cls, x1, y1, x2, y2, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         if x1 == x2:
             return cls(1, 0, x1)
 
         slope = (y2 - y1)/(x2 - x1)
-        return cls.from_point_slope(x1, y1, slope, eqstr, graphColor, graphAcc0)
+        return cls.from_point_slope(x1, y1, slope, eqString, graphColor, graphAcc0)
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
         
         slope = -self.a/self.b
-        yint = self.c/self.b
+        yInt = self.c/self.b
         
         res = "y = "
         if slope == -1:
@@ -259,11 +259,11 @@ class LinEq(Function):
         elif slope != 0:
             res = res + f"{slope}x"
         
-        if yint != 0:
-            if yint < 0:
-                res = res + f" - {yint}"
+        if yInt != 0:
+            if yInt < 0:
+                res = res + f" - {yInt}"
             else:
-                res = res + f" + {yint}"
+                res = res + f" + {yInt}"
             
         return res
     
@@ -272,83 +272,83 @@ class LinEq(Function):
     
     def stats(self):
         print(f"Standard: {self.a}x + {self.b}y = {self.c}")
-        print(f"Eqstring:", self.eqstring)
+        print(f"eqStringing:", self.eqStringing)
     
     
 
 class Polynomial(Function):
     
-    def __init__(self, *coefficients, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def __init__(self, *coefficients, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self.coefficients = coefficients
         self.deg = len(self.coefficients) - 1
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
         super().__init__(graphColor, graphAcc0)
         
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
         else:
             if self.deg > 1:
-                eqstr = "y = "
+                eqString = "y = "
                 if self.coefficients[0] == 0:
                     pass
                 elif self.coefficients[0] == 1:
-                    eqstr = eqstr + f"x^{self.deg}"
+                    eqString = eqString + f"x^{self.deg}"
                 elif self.coefficients[0] == -1:
-                    eqstr = eqstr + f"-x^{self.deg}"
+                    eqString = eqString + f"-x^{self.deg}"
                 else:
-                    eqstr = eqstr + f"{self.coefficients[0]}x^{self.deg}"
+                    eqString = eqString + f"{self.coefficients[0]}x^{self.deg}"
                 for i in range(1,len(self.coefficients)-2):
                     if self.coefficients[i] == 0:
                         continue
                     elif self.coefficients[i] == 1 or self.coefficients[i] == -1:
-                        eqstr = eqstr + f"x^{self.deg - i}"
+                        eqString = eqString + f"x^{self.deg - i}"
                     else:
-                        eqstr = eqstr + f"{self.coefficients[i]}x^{self.deg - i}"
+                        eqString = eqString + f"{self.coefficients[i]}x^{self.deg - i}"
                             
                     if (self.deg - i) > 2:
                         nxt = " + " if self.coefficients[i+1] > 0 else (" - " if self.coefficients[i+1] < 0 else "")
-                        eqstr = eqstr + nxt
+                        eqString = eqString + nxt
         
                 m = self.coefficients[len(self.coefficients)-2]
                 b = self.coefficients[len(self.coefficients)-1]
                 if m > 0:
                     if m == 1:
-                        eqstr = eqstr + " + x"
+                        eqString = eqString + " + x"
                     else:
-                        eqstr = eqstr + f" + {m}x"
+                        eqString = eqString + f" + {m}x"
                 elif m < 0:
                     if m == -1:
-                        eqstr = eqstr + " - x"
+                        eqString = eqString + " - x"
                     else:
-                        eqstr = eqstr + f" - {-m}x"
+                        eqString = eqString + f" - {-m}x"
                 if b > 0:
-                    eqstr = eqstr + f" + {b}"
+                    eqString = eqString + f" + {b}"
                 elif b < 0:
-                    eqstr = eqstr + f" - {-b}"
+                    eqString = eqString + f" - {-b}"
                 
-                return eqstr
+                return eqString
             else:
-                eqstr = "y = "
+                eqString = "y = "
                 m = self.coefficients[0]
                 b = self.coefficients[1]
                 if m > 0:
                     if m == 1:
-                        eqstr = eqstr + "x"
+                        eqString = eqString + "x"
                     else:
-                        eqstr = eqstr + f"{m}x"
+                        eqString = eqString + f"{m}x"
                 elif m < 0:
                     if m == -1:
-                        eqstr = eqstr + "-x"
+                        eqString = eqString + "-x"
                     else:
-                        eqstr = eqstr + f"{m}x"
+                        eqString = eqString + f"{m}x"
                 if b > 0:
-                    eqstr = eqstr + f" + {b}"
+                    eqString = eqString + f" + {b}"
                 elif b < 0:
-                    eqstr = eqstr + f" - {-b}"
+                    eqString = eqString + f" - {-b}"
                 
-                return eqstr
+                return eqString
                 
             
     
@@ -371,20 +371,20 @@ class Polynomial(Function):
         
 class Exponential(Function):
     
-    def __init__(self, base, vs, arg, vt, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def __init__(self, base, vs, arg, vt, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self._data = [base, vs, arg, vt]
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
         
         self.base, self.vs, self.arg, self.vt = self._data
         super().__init__(graphColor, graphAcc0)
         
     @classmethod
-    def from_basic(cls, base, vs=1, vt=0, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
-        return cls(base, vs, Polynomial(1,0), vt, eqstr, graphColor, graphAcc0)
+    def from_basic(cls, base, vs=1, vt=0, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+        return cls(base, vs, Polynomial(1,0), vt, eqString, graphColor, graphAcc0)
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
         
         res = "y = "
         if self.vs == 0:
@@ -409,15 +409,15 @@ class Exponential(Function):
         return (self.vs * (self.base**self.arg.evaluate(x)) + self.vt)
 
 class Sinusoid(Function):
-    def __init__(self, vs, arg, vt, trig_type, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def __init__(self, vs, arg, vt, trig_type, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self.trig_type = trig_type
         self.amp, self.arg, self.vt = vs, arg, vt
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
         super().__init__(graphColor, graphAcc0)
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
     
         res = "y = "
         if self.amp == -1:
@@ -436,8 +436,8 @@ class Sinusoid(Function):
         return res
     
     @classmethod
-    def from_basic(cls, trig_type, vs=1, vt=0, eqstr=None):
-        return cls(vs, Polynomial(1,0), vt, trig_type, eqstr)
+    def from_basic(cls, trig_type, vs=1, vt=0, eqString=None):
+        return cls(vs, Polynomial(1,0), vt, trig_type, eqString)
             
     
     def evaluate(self,x):
@@ -466,19 +466,19 @@ class Sinusoid(Function):
                 return None
 
 class Logarithm(Function):
-    def __init__(self, base, vs, arg, vt, eqstr=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
+    def __init__(self, base, vs, arg, vt, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self._data = [base, vs, arg, vt]
         self.base, self.vs, self.arg, self.vt = self._data
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
         super().__init__(graphColor, graphAcc0)
     
     @classmethod
-    def from_basic(cls, base, vs=1, vt=0, eqstr=None):
-        return cls(base, vs, Polynomial(1,0), vt, eqstr)
+    def from_basic(cls, base, vs=1, vt=0, eqString=None):
+        return cls(base, vs, Polynomial(1,0), vt, eqString)
         
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
     
         res = "y = "
         if self.vs == -1:
@@ -506,34 +506,34 @@ class Logarithm(Function):
             return None
 
 class Parametric:
-    def __init__(self, argx, argy, eqstr=None, tmin=-10, tmax=10):
-        self._data = [argx, argy]
-        self.argx, self.argy = self._data
-        self._custom_eqstr = eqstr
+    def __init__(self, argX, argY, eqString=None, tMin=-10, tMax=10):
+        self._data = [argX, argY]
+        self.argX, self.argY = self._data
+        self._custom_eqString = eqString
         self.graphColor = "black"
         self.graphAcc0 = 0.005*scalaX
-        self.tmin = tmin
-        self.tmax = tmax
+        self.tMin = tMin
+        self.tMax = tMax
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
         else:
-            return f"P(x) = ({str(self.argx)[4:]}, {str(self.argy)[4:]})"
+            return f"P(x) = ({str(self.argX)[4:]}, {str(self.argY)[4:]})"
     
     def evaluate(self, t):
-        return [self.argx.evaluate(t), self.argy.evaluate(t)]
+        return [self.argX.evaluate(t), self.argY.evaluate(t)]
     
     def graph(self, acc0=scalaX*0.005, color="black"):
         for eqn in eqns:
             if isinstance(eqn, Parametric):
-                if self._data == eqn._data and color == eqn.graphColor and acc0 == eqn.graphAcc0 and tmin == eqn.tmin and tmax == eqn.tmax:
+                if self._data == eqn._data and color == eqn.graphColor and acc0 == eqn.graphAcc0 and tMin == eqn.tMin and tMax == eqn.tMax:
                     return
                 elif self._data == eqn._data:
                     self.graphColor = color
                     self.graphAcc0 = acc0
-                    self.tmin = tmin
-                    self.tmax = tmax
+                    self.tMin = tMin
+                    self.tMax = tMax
                     eqns.remove(eqn)
                     eqns.append(self)
                     
@@ -544,11 +544,11 @@ class Parametric:
         self.graphColor = color
         self.graphAcc0 = acc0
         pen.pencolor(color)
-        tmin, tmax = self.tmin, self.tmax
-        t = tmin
+        tMin, tMax = self.tMin, self.tMax
+        t = tMin
         x,y = self.evaluate(t)
         pen.up()
-        while t < tmax:
+        while t < tMax:
             t += acc0
             x,y = self.evaluate(t)
             if y is None or x is None:
@@ -565,16 +565,16 @@ class Parametric:
         
             
 class Point:
-    def __init__(self,x,y, eqstr=None):
+    def __init__(self,x,y, eqString=None):
         self.x = x
         self.y = y
         self.graphColor = "black"
         self._data = [x,y]
-        self._custom_eqstr = eqstr
+        self._custom_eqString = eqString
     
     def __str__(self):
-        if self._custom_eqstr is not None:
-            return self._custom_eqstr
+        if self._custom_eqString is not None:
+            return self._custom_eqString
         else:
             return f"P = ({self.x},{self.y})"
     
@@ -820,7 +820,7 @@ def redraw():
     
     for eqn in eqns2:
         if isinstance(eqn, Parametric):
-            eqn.graph(tmin=eqn.tmin, tmax=eqn.tmax, acc0=eqn.graphAcc0, color=eqn.graphColor)
+            eqn.graph(tMin=eqn.tMin, tMax=eqn.tMax, acc0=eqn.graphAcc0, color=eqn.graphColor)
         elif not isinstance(eqn, LinEq) and not isinstance(eqn, Point):
             eqn.graph(acc0=eqn.graphAcc0, color=eqn.graphColor)
         else:
@@ -936,7 +936,7 @@ def initial():
     
     for eqn in eqns2:
         if isinstance(eqn, Parametric):
-            eqn.graph(tmin=eqn.tmin, tmax=eqn.tmax, acc0=eqn.graphAcc0, color=eqn.graphColor)
+            eqn.graph(tMin=eqn.tMin, tMax=eqn.tMax, acc0=eqn.graphAcc0, color=eqn.graphColor)
         elif isinstance(eqn, Function):
             eqn.graph()
             
