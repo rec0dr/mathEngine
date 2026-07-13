@@ -1,5 +1,4 @@
 import math
-from .parametric import Parametric
 from enum import Enum
 
 class Operation(Enum):

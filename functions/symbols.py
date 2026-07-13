@@ -1,4 +1,4 @@
-from function import Variable
+from .function import Variable
 
 X = Variable("x")
 Y = Variable("y")

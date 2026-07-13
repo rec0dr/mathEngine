@@ -1,15 +1,15 @@
 import math
 
 class Viewport:
-    def __init__(self):
-        self.width = 1200
-        self.height = 800
+    def __init__(self, w, h):
+        self.width = w
+        self.height = h
 
-        self.origin_x = 600
-        self.origin_y = 400
+        self.origin_x = w/2
+        self.origin_y = h/2
 
-        self.ppu_x = 60
-        self.ppu_y = 40
+        self.ppu_x = w/20
+        self.ppu_y = h/20
 
     def graph_to_screen(self,x,y):
         screen_x = self.origin_x + self.ppu_x * x
@@ -34,8 +34,8 @@ class Viewport:
         self.ppu_y = self.height / scaleY / 2
 
     def pan_by(self, dx, dy):
-        self.origin_x += (self.ppu_x) * dx
-        self.origin_y -= (self.ppu_y) * dy
+        self.origin_x -= (self.ppu_x) * dx
+        self.origin_y += (self.ppu_y) * dy
     
     
 
