@@ -2,7 +2,7 @@ import pygame
 import math
 
 from .viewport import Viewport
-from functions.function import Function
+from functions.function import Function, Constant
 from styles.style import Style
 from styles.line_style import LineStyle
 
@@ -12,15 +12,18 @@ class Renderer:
         self.viewport = viewport
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
+        self.overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 
     def clear(self):
         self.screen.fill((0,0,0))
+        self.overlay.fill((0,0,0,0))
 
     def draw_line(self, x1, y1, x2, y2, style: LineStyle = LineStyle()):
         p1 = self.viewport.graph_to_screen(x1, y1)
         p2 = self.viewport.graph_to_screen(x2, y2)
 
-        pygame.draw.line(self.screen, (*style.color, style.opacity), p1, p2, style.thickness)
+        if style.visible:
+            pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, style.thickness)
     
     def draw_axes(self, style: LineStyle = LineStyle()):
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
@@ -30,6 +33,8 @@ class Renderer:
         self.draw_line(0, self.boundD, 0, self.boundU, style)
     
     def draw_function(self, func, style: LineStyle = LineStyle(), graphAccuracy=0.01):
+        if isinstance(func, (int, float)):
+            func = Constant(func)
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
 

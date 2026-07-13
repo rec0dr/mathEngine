@@ -37,6 +37,9 @@ class Viewport:
         self.origin_x -= (self.ppu_x) * dx
         self.origin_y += (self.ppu_y) * dy
     
+    def pan_pixels(self, dx, dy, sensitivity=10):
+        self.origin_x -= dx / self.ppu_x * sensitivity
+        self.origin_y += dy / self.ppu_y * sensitivity
     
 
 
