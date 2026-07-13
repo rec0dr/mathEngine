@@ -17,26 +17,47 @@ class Function:
         if isinstance(other, (int, float)):
             other = Constant(other)
         return Combination(self, Operation.ADD, other)
+
+    def __radd__(self, other):
+        return self.__add__(other)
     
     def __sub__(self, other):
         if isinstance(other, (int, float)):
             other = Constant(other)
         return Combination(self, Operation.SUBTRACT, other)
     
+    def __rsub__(self, other):
+        if isinstance(other, (int, float)):
+            other = Constant(other)
+        return Combination(other, Operation.SUBTRACT, self)
+    
     def __mul__(self, other):
         if isinstance(other, (int, float)):
             other = Constant(other)
         return Combination(self, Operation.MULTIPLY, other)
+    
+    def __rmul__(self, other):
+        return self.__mul__(other)
     
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
             other = Constant(other)
         return Combination(self, Operation.DIVIDE, other)
     
+    def __rtruediv__(self, other):
+        if isinstance(other, (int, float)):
+            other = Constant(other)
+        return Combination(other, Operation.DIVIDE, self) 
+    
     def __pow__(self, other):
         if isinstance(other, (int, float)):
             other = Constant(other)
         return Combination(self, Operation.POWER, other)
+    
+    def __rpow__(self, other):
+        if isinstance(other, (int, float)):
+            other = Constant(other)
+        return Combination(other, Operation.POWER, self)
     
     def __neg__(self):
         return Combination(Constant(0), Operation.SUBTRACT, self)
@@ -83,7 +104,7 @@ class Constant(Function):
         self.value = value
     
     def __str__(self):
-        return f"y = {self.value}"
+        return f"{self.value}"
     
     def evaluate(self, x):
         return self.value
@@ -91,6 +112,9 @@ class Constant(Function):
 class Variable(Function):
     def __init__(self, name):
         self.name = name
+    
+    def __str__(self):
+        return f"{self.name}"
     
     def evaluate(self, x):
         return x
