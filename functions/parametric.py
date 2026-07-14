@@ -1,7 +1,8 @@
 import math
 from .function import Function
+from .function import Variable
 class Parametric:
-    def __init__(self, argX, argY, eqString=None, tMin=-10, tMax=10):
+    def __init__(self, argX=Variable("x"), argY=Variable("x"), eqString=None, tMin=-10, tMax=10):
         self._data = [argX, argY]
         self.argX, self.argY = self._data
         self._custom_eqString = eqString

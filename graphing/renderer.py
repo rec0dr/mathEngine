@@ -5,6 +5,7 @@ from .viewport import Viewport
 from functions.function import Function, Constant
 from functions.parametric import Parametric
 from objects.point import Point
+from objects.line_segment import LineSegment
 from styles.style import Style
 from styles.func_style import FuncStyle
 from styles.point_style import PointStyle
@@ -40,6 +41,40 @@ class Renderer:
         self.draw_line(self.boundL, 0, self.boundR, 0, style)
         self.draw_line(0, self.boundD, 0, self.boundU, style)
     
+    def draw_ticks(self, style=None):
+        self.update_bounds()
+        major_dist = 10**(math.floor(math.log10(self.viewport.scale_x)))
+        factor = 5
+        minor_dist = major_dist / factor
+        major_height = major_dist / 5
+        minor_height = major_height / 4
+        x = minor_dist * round(self.boundL / minor_dist)
+        i = x / minor_dist
+        while x < self.boundR:
+            i += 1
+            x = i * minor_dist
+            if i % factor == 0:
+                self.draw_line(x, major_height, x, -major_height)
+            else:
+                self.draw_line(x, minor_height, x, -minor_height)
+            
+            if x > self.boundR:
+                break
+        
+        y = minor_dist * round(self.boundD / minor_dist)
+        i = y / minor_dist
+        while y < self.boundU:
+            i += 1
+            y = i * minor_dist
+            if i % factor == 0:
+                self.draw_line(major_height, y, -major_height, y)
+            else:
+                self.draw_line(minor_height, y, -minor_height, y)
+            
+            if y > self.boundU:
+                break
+
+    
     def draw_graph(self, graph: GraphObject, graphAccuracy=None):
         func = graph.obj
         style = graph.style
@@ -53,6 +88,8 @@ class Renderer:
             self.draw_parametric(func, style, graphAccuracy)
         elif isinstance(func, Point):
             self.draw_point(func, style)
+        elif isinstance(func, LineSegment):
+            self.draw_line(func.x1, func.y1, func.x2, func.y2, style)
         
     def draw_point(self, point: Point, style: PointStyle = PointStyle()):
         x, y = self.viewport.graph_to_screen(point.x, point.y)

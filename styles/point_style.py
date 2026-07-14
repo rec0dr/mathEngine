@@ -4,5 +4,5 @@ from dataclasses import dataclass
 @dataclass
 class PointStyle(Style):
     is_solid: bool = True
-    radiusPX: float = 5
+    radiusPX: float = 3
     border_widthPX: int = 0

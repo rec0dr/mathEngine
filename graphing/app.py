@@ -67,6 +67,7 @@ class GraphApp:
     def begin_frame(self):
         self.renderer.clear()
         self.renderer.draw_axes()
+        self.renderer.draw_ticks()
     
     def add_graphObject(self, obj: GraphObject):
         self.graphObjects.append(obj)

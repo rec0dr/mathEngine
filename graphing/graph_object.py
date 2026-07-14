@@ -3,6 +3,7 @@ import math
 from functions.function import Function
 from functions.parametric import Parametric
 from objects.point import Point
+from objects.line_segment import LineSegment
 
 from styles.style import Style
 from styles.func_style import FuncStyle
@@ -28,6 +29,8 @@ class GraphObject:
                 self.style = ParametricStyle(**style_kwargs)
             elif isinstance(obj, Point):
                 self.style = PointStyle(**style_kwargs)
+            elif isinstance(obj, LineSegment):
+                self.style = FuncStyle(**style_kwargs)
 
         self.obj = obj
     
