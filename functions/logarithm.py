@@ -1,6 +1,8 @@
 import math
 from .function import Function
-from .symbols import X
+from .function import Variable
+
+X = Variable("x")
 
 class Logarithm(Function):
     def __init__(self, base, vs, arg, vt, eqString=None):
@@ -22,7 +24,7 @@ class Logarithm(Function):
         elif self.vs != 1:
             res = res + f"{self.vs}*"
         
-        res = res + f"log({self.base})({str(self.arg)[4:]})"
+        res = res + f"log({self.base})({str(self.arg)})"
         
         if self.vt != 0:
             if self.vt < 0:

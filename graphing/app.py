@@ -3,7 +3,7 @@ import time
 
 from .viewport import Viewport
 from .renderer import Renderer
-from styles.line_style import LineStyle
+from styles.func_style import FuncStyle
 from functions.function import Function
 from functions.parametric import Parametric
 
@@ -23,7 +23,7 @@ class GraphApp:
         self.height = height
         self.sensitivity = sensitivity
 
-        self.functions = []
+        self.graphFunctions = []
 
     def pan_mouse(self):
         dx, dy = pygame.mouse.get_rel()
@@ -58,11 +58,8 @@ class GraphApp:
         self.renderer.draw_axes()
     
     def draw_functions(self):
-        for function in self.functions:
-            if isinstance(function, Function):
-                self.renderer.draw_function(function)
-            elif isinstance(function, Parametric):
-                self.renderer.draw_parametric(function)
+        for graph in self.graphFunctions:
+            self.renderer.draw_graph(graph)
     
     def end_frame(self):
         self.screen.blit(self.renderer.overlay,(0,0))
@@ -97,6 +94,8 @@ class GraphApp:
                         time.sleep(0.01)
                 elif event.key == pygame.K_q:
                     self.running = False
+                
+                
                         
                         
     

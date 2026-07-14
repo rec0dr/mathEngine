@@ -2,5 +2,5 @@ from .style import Style
 from dataclasses import dataclass
 
 @dataclass
-class LineStyle(Style):
+class FuncStyle(Style):
     thickness: int = 2

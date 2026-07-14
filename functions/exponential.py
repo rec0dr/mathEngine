@@ -1,6 +1,8 @@
 import math
 from .function import Function
-from .symbols import X
+from .function import Variable
+
+X = Variable("x")
 
 class Exponential(Function):
     
@@ -28,7 +30,7 @@ class Exponential(Function):
         else:
             res = res + f"{self.vs}({self.base})^"
         
-        res = res + f"({str(self.arg)[4:]})"
+        res = res + f"({str(self.arg)})"
         
         if self.vt != 0:
             if self.vt > 0:

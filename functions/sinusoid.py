@@ -1,7 +1,9 @@
 from .function import Function
-from .symbols import X
+from .function import Variable
 from enum import Enum
 import math
+
+X = Variable("x")
 
 class TrigType(Enum):
     SIN = "sin"
@@ -27,7 +29,7 @@ class Sinusoid(Function):
         elif self.amp != 1:
             res = res + f"{self.amp}*"
         
-        res = res + f"{self.trig_type.value}({str(self.arg)[4:]})"
+        res = res + f"{self.trig_type.value}({str(self.arg)})"
         
         if self.vt != 0:
             if self.vt < 0:

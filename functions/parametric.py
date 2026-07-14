@@ -12,7 +12,7 @@ class Parametric:
         if self._custom_eqString is not None:
             return self._custom_eqString
         else:
-            return f"({str(self.argX)[4:]}, {str(self.argY)[4:]})"
+            return f"({str(self.argX)}, {str(self.argY)})"
     
     def evaluate(self, t):
         return [self.argX.evaluate(t), self.argY.evaluate(t)]
