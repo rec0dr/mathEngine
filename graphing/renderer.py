@@ -8,6 +8,7 @@ from objects.point import Point
 from styles.style import Style
 from styles.func_style import FuncStyle
 from styles.point_style import PointStyle
+from styles.parametric_style import ParametricStyle
 from .graph_object import GraphObject
 
 class Renderer:
@@ -62,7 +63,7 @@ class Renderer:
     
     def draw_explicit(self, func: Function, style: FuncStyle = FuncStyle(), graphAccuracy=None):
         if graphAccuracy is None:
-            graphAccuracy = self.viewport.scale_x * 1/1000
+            graphAccuracy = 0.001*self.viewport.scale_x
         self.update_bounds()
 
         x1 = self.boundL
@@ -81,22 +82,31 @@ class Renderer:
                 self.draw_line(x1, y1, x2, y2, style)
                 x1 += graphAccuracy
 
-    def draw_parametric(self, parametric: Parametric, style: FuncStyle = FuncStyle(), graphAccuracy=None, tMin=0, tMax=2*math.pi):
+    def draw_parametric(self, parametric: Parametric, style: ParametricStyle = ParametricStyle(), graphAccuracy=None):
         if graphAccuracy is None:
-            graphAccuracy = self.viewport.scale_x * 1/1000
+            graphAccuracy = (style.tMax - style.tMin) / 1000
         self.update_bounds()
 
-        t = tMin
-        while t <= tMax:
-            x1, y1 = parametric.evaluate(t)
+        t = style.tMin
+        x1, y1 = parametric.evaluate(t)
+        while t <= style.tMax:
             x2, y2 = parametric.evaluate(t + graphAccuracy)
             
             if y1 is None or y2 is None:
+                x1, y1 = x2, y2
                 t += graphAccuracy
                 continue
-            elif y1 > self.boundU or y1 < self.boundD:
+            elif (
+                    (x1 < self.boundL and x2 < self.boundL) or
+                    (x1 > self.boundR and x2 > self.boundR) or
+                    (y1 < self.boundD and y2 < self.boundD) or
+                    (y1 > self.boundU and y2 > self.boundU)
+                ):
+                x1, y1 = x2, y2
                 t += graphAccuracy
                 continue
             else:
                 self.draw_line(x1, y1, x2, y2, style)
+                x1, y1 = x2, y2
                 t += graphAccuracy
+

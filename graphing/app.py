@@ -108,6 +108,12 @@ class GraphApp:
                 elif event.key == pygame.K_f:
                     current_fps = self.clock.get_fps()
                     print(current_fps)
+                elif event.key == pygame.K_h:
+                    for obj in self.graphObjects:
+                        obj.hide()
+                elif event.key == pygame.K_s:
+                    for obj in self.graphObjects:
+                        obj.show()
                 
                 
                         
