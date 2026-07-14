@@ -4,8 +4,10 @@ import math
 from .viewport import Viewport
 from functions.function import Function, Constant
 from functions.parametric import Parametric
+from objects.point import Point
 from styles.style import Style
 from styles.func_style import FuncStyle
+from styles.point_style import PointStyle
 from .graph_object import GraphObject
 
 class Renderer:
@@ -38,7 +40,7 @@ class Renderer:
         self.draw_line(0, self.boundD, 0, self.boundU, style)
     
     def draw_graph(self, graph: GraphObject, graphAccuracy=None):
-        func = graph.function
+        func = graph.obj
         style = graph.style
 
         if isinstance(func, Function):
@@ -48,6 +50,15 @@ class Renderer:
             self.draw_explicit(func, style, graphAccuracy)
         elif isinstance(func, Parametric):
             self.draw_parametric(func, style, graphAccuracy)
+        elif isinstance(func, Point):
+            self.draw_point(func, style)
+        
+    def draw_point(self, point: Point, style: PointStyle = PointStyle()):
+        x, y = self.viewport.graph_to_screen(point.x, point.y)
+        if style.is_solid:
+            style.border_widthPX = 0
+        if style.visible:
+            pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radiusPX, style.border_widthPX)
     
     def draw_explicit(self, func: Function, style: FuncStyle = FuncStyle(), graphAccuracy=None):
         if graphAccuracy is None:

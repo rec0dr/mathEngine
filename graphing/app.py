@@ -3,27 +3,38 @@ import time
 
 from .viewport import Viewport
 from .renderer import Renderer
-from styles.func_style import FuncStyle
+from styles.point_style import PointStyle
 from functions.function import Function
 from functions.parametric import Parametric
+from objects.point import Point
+from objects.animated_point import AnimatedPoint
+from .graph_object import GraphObject
 
 
 BASE_SENSITIVITY_POWER = 1
 BASE_ZOOM_FACTOR = 1.1
 
 class GraphApp:
-    def __init__(self, width, height, sensitivity=100):
+    def __init__(self, width, height, scaleX=10, scaleY=10, sensitivity=100, fps=60):
         pygame.init()
+        self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((width, height))
-        self.viewport = Viewport(width, height)
+        self.viewport = Viewport(width, height, scaleX, scaleY)
         self.renderer = Renderer(self.screen, self.viewport)
 
         self.running = False
         self.width = width
         self.height = height
         self.sensitivity = sensitivity
+        self.fps = fps
 
-        self.graphFunctions = []
+        self.graphObjects = []
+
+        self.traceStyle = PointStyle(color=(255,0,0),opacity=255,visible=True,is_solid=True)
+
+        self.tracedPoints = []
+
+        self.animatedPoints = []
 
     def pan_mouse(self):
         dx, dy = pygame.mouse.get_rel()
@@ -57,9 +68,28 @@ class GraphApp:
         self.renderer.clear()
         self.renderer.draw_axes()
     
-    def draw_functions(self):
-        for graph in self.graphFunctions:
+    def add_graphObject(self, obj: GraphObject):
+        self.graphObjects.append(obj)
+    
+    def add_tracePoint(self, x: int, obj):
+        self.tracedPoints.append([x, obj])
+    
+    def add_animatedPoint(self, obj: AnimatedPoint):
+        self.animatedPoints.append(obj)
+    
+    def draw_graphObjects(self):
+        for graph in self.graphObjects:
             self.renderer.draw_graph(graph)
+    
+    def draw_tracePoints(self):
+        for x, func in self.tracedPoints:
+            y = func.evaluate(x)
+            self.renderer.draw_graph(GraphObject(obj=Point([x,y]),style=self.traceStyle))
+    
+    def draw_animatedPoints(self):
+        for obj in self.animatedPoints:
+            obj.update(self.fps)
+            self.renderer.draw_graph(GraphObject(obj=Point(obj.pos),style=self.traceStyle))
     
     def end_frame(self):
         self.screen.blit(self.renderer.overlay,(0,0))
@@ -73,27 +103,11 @@ class GraphApp:
     def key_inputs(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_h:
-                    curX, curY = self.viewport.screen_to_graph(self.width / 2, self.height / 2)
-                    dx = -curX/100
-                    dy = -curY/100
-                    curScaleX, curScaleY = self.viewport.scale_x, self.viewport.scale_y
-                    zoomX, zoomY = curScaleX**(-1/100) * (10**(1/100)), curScaleY**(-1/100) * (10**(1/100))
-                    for _ in range(100):
-                        self.begin_frame()
-                        self.viewport.pan_by(dx, dy)
-                        self.draw_functions()
-                        self.end_frame()
-                        time.sleep(0.01)
-                    
-                    for _ in range(100):
-                        self.begin_frame()
-                        self.viewport.zoom_by(1/zoomX, 1/zoomY)
-                        self.draw_functions()
-                        self.end_frame()
-                        time.sleep(0.01)
-                elif event.key == pygame.K_q:
+                if event.key == pygame.K_q:
                     self.running = False
+                elif event.key == pygame.K_f:
+                    current_fps = self.clock.get_fps()
+                    print(current_fps)
                 
                 
                         
@@ -111,10 +125,13 @@ class GraphApp:
     def run(self):
         self.running = True
         while self.running:
+            self.clock.tick(self.fps)
             self.handle_inputs()
             
             self.begin_frame()
-            self.draw_functions()
+            self.draw_graphObjects()
+            self.draw_animatedPoints()
+            self.draw_tracePoints()
             self.end_frame()
         pygame.quit()
     

@@ -1,22 +1,30 @@
 import math
 
 from functions.function import Function
+from functions.parametric import Parametric
+from objects.point import Point
+from styles.style import Style
 from styles.func_style import FuncStyle
+from styles.point_style import PointStyle
 
 class GraphObject:
-    def __init__(self, function, style=None, **style_kwargs):
+    def __init__(self, obj, style=None, **style_kwargs):
         if style is not None and style_kwargs:
             raise ValueError(
                 "Cannot specify both 'style' and individual style properties!"
             )
         
         if style is not None:
-            if not isinstance(style, FuncStyle):
-                raise TypeError("style must be a FuncStyle")
+            if not isinstance(style, Style):
+                raise TypeError("style must be a Style")
             else:
                 self.style = style
         else:
-            self.style = FuncStyle(**style_kwargs)
+            if isinstance(obj, (Function, Parametric)):
+                self.style = FuncStyle(**style_kwargs)
+            elif isinstance(obj, Point):
+                self.style = PointStyle(**style_kwargs)
 
-        self.function = function
+        self.obj = obj
+
         
