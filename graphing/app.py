@@ -17,6 +17,8 @@ BASE_ZOOM_FACTOR = 1.1
 class GraphApp:
     def __init__(self, width, height, scaleX=10, scaleY=10, sensitivity=100, fps=60):
         pygame.init()
+        pygame.font.init()
+        
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((width, height))
         self.viewport = Viewport(width, height, scaleX, scaleY)

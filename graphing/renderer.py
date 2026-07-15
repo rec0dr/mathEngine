@@ -14,6 +14,7 @@ from .graph_object import GraphObject
 
 class Renderer:
     def __init__(self, screen, viewport):
+        self.tick_font = pygame.font.SysFont(None, 25)
         self.screen = screen
         self.viewport = viewport
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
@@ -41,6 +42,17 @@ class Renderer:
         self.draw_line(self.boundL, 0, self.boundR, 0, style)
         self.draw_line(0, self.boundD, 0, self.boundU, style)
     
+    def draw_tick_text(self, x, y):
+        # print(self.tick_font)
+        text = self.tick_font.render(f"{x:g}", True, (255,255,255))
+
+        text_rect = text.get_rect()
+        screen_x, screen_y = self.viewport.graph_to_screen(x, y)
+
+        text_rect.centerx = screen_x
+
+        self.screen.blit(text, text_rect)
+    
     def draw_ticks(self, style=None):
         self.update_bounds()
         major_dist = 10**(math.floor(math.log10(self.viewport.scale_x)))
@@ -48,31 +60,28 @@ class Renderer:
         minor_dist = major_dist / factor
         major_height = major_dist / 5
         minor_height = major_height / 4
-        x = minor_dist * round(self.boundL / minor_dist)
-        i = x / minor_dist
-        while x < self.boundR:
-            i += 1
+        first = math.floor(self.boundL / minor_dist)
+        last = math.ceil(self.boundR / minor_dist)
+        for i in range(first, last + 1):
             x = i * minor_dist
-            if i % factor == 0:
+
+            if i % factor == 0 and i != 0:
                 self.draw_line(x, major_height, x, -major_height)
+                print(major_height)
+                self.draw_tick_text(x, major_height*1.2)
             else:
                 self.draw_line(x, minor_height, x, -minor_height)
-            
-            if x > self.boundR:
-                break
         
-        y = minor_dist * round(self.boundD / minor_dist)
-        i = y / minor_dist
-        while y < self.boundU:
-            i += 1
+        first = math.floor(self.boundD / minor_dist)
+        last = math.ceil(self.boundU / minor_dist)
+        for i in range(first, last + 1):
             y = i * minor_dist
+
             if i % factor == 0:
                 self.draw_line(major_height, y, -major_height, y)
             else:
                 self.draw_line(minor_height, y, -minor_height, y)
             
-            if y > self.boundU:
-                break
 
     
     def draw_graph(self, graph: GraphObject, graphAccuracy=None):

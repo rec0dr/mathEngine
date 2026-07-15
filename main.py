@@ -9,6 +9,6 @@ scaleX, scaleY = (10,10)
 app = GraphApp(width, height, scaleX, scaleY, fps=60, sensitivity=100)
 
 func1 = Polar(SIN+COS)
-app.add_graphObject(GraphObject(func1))
+app.add_graphObject(GraphObject(func1, color=RED))
 
 app.run()
