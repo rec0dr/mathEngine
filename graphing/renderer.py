@@ -70,6 +70,11 @@ class Renderer:
         major_heightY = major_distY / 5
         minor_heightY = major_heightY / 4
 
+        major_heightX = min(major_heightX, major_heightY)
+        major_heightY = major_heightX
+        minor_heightX = min(minor_heightX, minor_heightY)
+        minor_heightY = minor_heightX
+
         first = math.floor(self.boundL / minor_distX)
         last = math.ceil(self.boundR / minor_distX)
 
