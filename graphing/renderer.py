@@ -15,6 +15,7 @@ from .graph_object import GraphObject
 class Renderer:
     def __init__(self, screen, viewport):
         self.tick_font = pygame.font.SysFont(None, 25)
+        self.tick_font2 = pygame.font.SysFont(None, 18)
         self.screen = screen
         self.viewport = viewport
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
@@ -55,32 +56,88 @@ class Renderer:
     
     def draw_ticks(self, style=None):
         self.update_bounds()
-        major_dist = 10**(math.floor(math.log10(self.viewport.scale_x)))
-        factor = 5
-        minor_dist = major_dist / factor
-        major_height = major_dist / 5
-        minor_height = major_height / 4
-        first = math.floor(self.boundL / minor_dist)
-        last = math.ceil(self.boundR / minor_dist)
-        for i in range(first, last + 1):
-            x = i * minor_dist
+        major_distX = 10**(math.floor(math.log10(self.viewport.scale_x)))
+        factorX = 5
+        minor_distX = major_distX / factorX
+        major_heightX = major_distX / 5
+        minor_heightX = major_heightX / 4
 
-            if i % factor == 0 and i != 0:
-                self.draw_line(x, major_height, x, -major_height)
-                print(major_height)
-                self.draw_tick_text(x, major_height*1.2)
-            else:
-                self.draw_line(x, minor_height, x, -minor_height)
+        major_distY = 10**(math.floor(math.log10(self.viewport.scale_y)))
+        factorY = 5
+        minor_distY = major_distY / factorY
+        major_heightY = major_distY / 5
+        minor_heightY = major_heightY / 4
+
+        first = math.floor(self.boundL / minor_distX)
+        last = math.ceil(self.boundR / minor_distX)
+
+        ppu_x = self.viewport.ppu_x
+        ppu_y = self.viewport.ppu_y
+
+        minor_visibilityX = (math.log10(self.viewport.scale_x) <= math.floor(math.log10(self.viewport.scale_x)) + 0.5)
+        minor_visibilityY = (math.log10(self.viewport.scale_y) <= math.floor(math.log10(self.viewport.scale_y)) + 0.5)
+
+        for i in range(first, last + 1):
+            x = i * minor_distX
+            if i == 0:
+                continue
+            if i % factorX == 0:
+                self.draw_line(x, major_heightX, x, -major_heightX)
+                
+                text = self.tick_font.render(f"{x:g}", True, (255,255,255))
+
+                text_rect = text.get_rect()
+                screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
+
+                text_rect.centerx = screen_x
+                text_rect.top = screen_y + (ppu_y * major_heightX * 1.1)
+
+                self.screen.blit(text, text_rect)
+            elif minor_visibilityX:
+                self.draw_line(x, minor_heightX, x, -minor_heightX)
+
+                text = self.tick_font2.render(f"{x:g}", True, (255,255,255))
+
+                text_rect = text.get_rect()
+                screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
+
+                text_rect.centerx = screen_x
+                text_rect.top = screen_y + (ppu_y * minor_heightX * 1.1)
+
+                self.screen.blit(text, text_rect)
         
-        first = math.floor(self.boundD / minor_dist)
-        last = math.ceil(self.boundU / minor_dist)
-        for i in range(first, last + 1):
-            y = i * minor_dist
+        first = math.floor(self.boundD / minor_distY)
+        last = math.ceil(self.boundU / minor_distY)
 
-            if i % factor == 0:
-                self.draw_line(major_height, y, -major_height, y)
-            else:
-                self.draw_line(minor_height, y, -minor_height, y)
+        for i in range(first, last + 1):
+            y = i * minor_distY
+
+            if i == 0:
+                continue
+
+            if i % factorY == 0:
+                self.draw_line(major_heightY, y, -major_heightY, y)
+                text = self.tick_font.render(f"{y:g}", True, (255,255,255))
+
+                text_rect = text.get_rect()
+                screen_x, screen_y = self.viewport.graph_to_screen(0, y)
+
+                text_rect.centery = screen_y
+                text_rect.right = screen_x - (ppu_x * major_heightY * 1.1)
+
+                self.screen.blit(text, text_rect)
+
+            elif minor_visibilityY:
+                self.draw_line(minor_heightY, y, -minor_heightY, y)
+                text = self.tick_font2.render(f"{y:g}", True, (255,255,255))
+
+                text_rect = text.get_rect()
+                screen_x, screen_y = self.viewport.graph_to_screen(0, y)
+
+                text_rect.centery = screen_y
+                text_rect.right = screen_x - (ppu_x * minor_heightY * 1.1)
+
+                self.screen.blit(text, text_rect)
             
 
     
