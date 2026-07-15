@@ -2,14 +2,14 @@ import pygame
 import math
 
 from .viewport import Viewport
+from functions.curve import Curve
 from functions.function import Function, Constant
 from functions.parametric import Parametric
 from objects.point import Point
 from objects.line_segment import LineSegment
 from styles.style import Style
-from styles.func_style import FuncStyle
+from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
-from styles.parametric_style import ParametricStyle
 from .graph_object import GraphObject
 
 class Renderer:
@@ -30,14 +30,14 @@ class Renderer:
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
 
-    def draw_line(self, x1, y1, x2, y2, style: FuncStyle = FuncStyle()):
+    def draw_line(self, x1, y1, x2, y2, style: CurveStyle = CurveStyle()):
         p1 = self.viewport.graph_to_screen(x1, y1)
         p2 = self.viewport.graph_to_screen(x2, y2)
 
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, style.thickness)
     
-    def draw_axes(self, style: FuncStyle = FuncStyle()):
+    def draw_axes(self, style: CurveStyle = CurveStyle()):
         self.update_bounds()
 
         self.draw_line(self.boundL, 0, self.boundR, 0, style)
@@ -56,14 +56,16 @@ class Renderer:
     
     def draw_ticks(self, style=None):
         self.update_bounds()
-        major_distX = 10**(math.floor(math.log10(self.viewport.scale_x)))
-        factorX = 5
+        factorX = 10
+        factorY = 10
+        amtX = math.log(self.viewport.scale_x, factorX)
+        major_distX = factorX**(math.floor(amtX))
         minor_distX = major_distX / factorX
         major_heightX = major_distX / 5
         minor_heightX = major_heightX / 4
 
-        major_distY = 10**(math.floor(math.log10(self.viewport.scale_y)))
-        factorY = 5
+        amtY = math.log(self.viewport.scale_y, factorY)
+        major_distY = factorY**(math.floor(amtY))
         minor_distY = major_distY / factorY
         major_heightY = major_distY / 5
         minor_heightY = major_heightY / 4
@@ -74,8 +76,8 @@ class Renderer:
         ppu_x = self.viewport.ppu_x
         ppu_y = self.viewport.ppu_y
 
-        minor_visibilityX = (math.log10(self.viewport.scale_x) <= math.floor(math.log10(self.viewport.scale_x)) + 0.5)
-        minor_visibilityY = (math.log10(self.viewport.scale_y) <= math.floor(math.log10(self.viewport.scale_y)) + 0.5)
+        minor_visibilityX = (amtX <= math.floor(amtX) + 0.5)
+        minor_visibilityY = (amtY <= math.floor(amtY) + 0.5)
 
         for i in range(first, last + 1):
             x = i * minor_distX
@@ -142,20 +144,13 @@ class Renderer:
 
     
     def draw_graph(self, graph: GraphObject, graphAccuracy=None):
-        func = graph.obj
+        func = graph.drawable
         style = graph.style
 
-        if isinstance(func, Function):
-            self.draw_explicit(func, style, graphAccuracy)
-        elif isinstance(func, (float, int)):
-            func = Constant(func)
-            self.draw_explicit(func, style, graphAccuracy)
-        elif isinstance(func, Parametric):
-            self.draw_parametric(func, style, graphAccuracy)
+        if isinstance(func, Curve):
+            self.draw_curve(func, style)
         elif isinstance(func, Point):
             self.draw_point(func, style)
-        elif isinstance(func, LineSegment):
-            self.draw_line(func.x1, func.y1, func.x2, func.y2, style)
         
     def draw_point(self, point: Point, style: PointStyle = PointStyle()):
         x, y = self.viewport.graph_to_screen(point.x, point.y)
@@ -163,37 +158,25 @@ class Renderer:
             style.border_widthPX = 0
         if style.visible:
             pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radiusPX, style.border_widthPX)
-    
-    def draw_explicit(self, func: Function, style: FuncStyle = FuncStyle(), graphAccuracy=None):
-        if graphAccuracy is None:
-            graphAccuracy = 0.001*self.viewport.scale_x
+        if style.labeled:
+            text = self.tick_font2.render(f"({point.x:.3}, {point.y:.3})", True, (255,255,255))
+            text_rect = text.get_rect()
+            screen_y = y - style.radiusPX
+            text_rect.centerx = x
+            text_rect.bottom = screen_y
+
+            self.screen.blit(text, text_rect)
+
+    def draw_curve(self, curve: Curve, style: CurveStyle = CurveStyle(), graphAccuracy=None):
         self.update_bounds()
-
-        x1 = self.boundL
-        while x1 < self.boundR:
-            x2 = x1 + graphAccuracy
-            y1 = func.evaluate(x1)
-            y2 = func.evaluate(x2)
-            
-            if y1 is None or y2 is None:
-                x1 += graphAccuracy
-                continue
-            elif y1 > self.boundU or y1 < self.boundD:
-                x1 += graphAccuracy
-                continue
-            else:
-                self.draw_line(x1, y1, x2, y2, style)
-                x1 += graphAccuracy
-
-    def draw_parametric(self, parametric: Parametric, style: ParametricStyle = ParametricStyle(), graphAccuracy=None):
         if graphAccuracy is None:
-            graphAccuracy = (style.tMax - style.tMin) / 1000
-        self.update_bounds()
+            min_parameter, max_parameter = curve.parameter_interval(self)
+            graphAccuracy = (max_parameter - min_parameter) / 1000
 
-        t = style.tMin
-        x1, y1 = parametric.evaluate(t)
-        while t <= style.tMax:
-            x2, y2 = parametric.evaluate(t + graphAccuracy)
+        t = min_parameter
+        x1, y1 = curve.point(t)
+        while t <= max_parameter:
+            x2, y2 = curve.point(t + graphAccuracy)
             
             if y1 is None or y2 is None:
                 x1, y1 = x2, y2

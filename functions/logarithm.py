@@ -6,6 +6,7 @@ X = Variable("x")
 
 class Logarithm(Function):
     def __init__(self, base=math.e, vs=1, arg=Variable("x"), vt=0, eqString=None):
+        super().__init__()
         self._data = [base, vs, arg, vt]
         self.base, self.vs, self.arg, self.vt = self._data
         self._custom_eqString = eqString

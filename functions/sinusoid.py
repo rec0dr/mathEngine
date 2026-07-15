@@ -15,6 +15,7 @@ class TrigType(Enum):
 
 class Sinusoid(Function):
     def __init__(self, vs = 1, arg = Variable("x"), vt = 0, trig_type = TrigType.SIN, eqString=None):
+        super().__init__()
         self.trig_type = trig_type
         self.amp, self.arg, self.vt = vs, arg, vt
         self._custom_eqString = eqString

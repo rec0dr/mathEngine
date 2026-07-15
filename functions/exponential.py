@@ -7,6 +7,7 @@ X = Variable("x")
 class Exponential(Function):
     
     def __init__(self, base, vs, arg, vt, eqString=None):
+        super().__init__()
         self._data = [base, vs, arg, vt]
         self._custom_eqString = eqString
         

@@ -1,8 +1,9 @@
 import math
 from .function import Function
 
-class LinEq(Function):
+class Linear(Function):
     def __init__(self, a, b, c, eqString=None):
+        super().__init__()
         self.a = float(a)
         self.b = float(b)
         self.c = float(c)

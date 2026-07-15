@@ -15,7 +15,9 @@ BASE_SENSITIVITY_POWER = 1
 BASE_ZOOM_FACTOR = 1.1
 
 class GraphApp:
-    def __init__(self, width, height, scaleX=10, scaleY=10, sensitivity=100, fps=60):
+    def __init__(self, width, height, scaleX=10, scaleY=10, pan_sensitivity=100, zoom_sensitivity=None, fps=60):
+        if zoom_sensitivity is None:
+            zoom_sensitivity = pan_sensitivity
         pygame.init()
         pygame.font.init()
         
@@ -27,30 +29,32 @@ class GraphApp:
         self.running = False
         self.width = width
         self.height = height
-        self.sensitivity = sensitivity
+        self.pan_sensitivity = pan_sensitivity
+        self.zoom_sensitivity = zoom_sensitivity
         self.fps = fps
 
         self.graphObjects = []
 
         self.traceStyle = PointStyle(color=(255,0,0),opacity=255,visible=True,is_solid=True)
 
-        self.tracedPoints = []
-
-        self.animatedPoints = []
-
     def pan_mouse(self):
         dx, dy = pygame.mouse.get_rel()
 
         if pygame.mouse.get_pressed()[0]:
             factor = 1/100 * BASE_SENSITIVITY_POWER
-            dx = -dx * (self.sensitivity*factor)
-            dy = dy * (self.sensitivity*factor)
+            dx = -dx * (self.pan_sensitivity*factor)
+            dy = dy * (self.pan_sensitivity*factor)
             self.viewport.pan_pixels(dx, dy)
     
     def zoom_mouse(self, events):
         for event in events:
             if event.type == pygame.MOUSEWHEEL:
                 zoom_factor = BASE_ZOOM_FACTOR ** event.y
+                if zoom_factor < 0:
+                    zoom_factor **= (self.zoom_sensitivity/100)
+                    zoom_factor *= -1
+                else:
+                    zoom_factor **= (self.zoom_sensitivity/100)
                 
                 # Panning such that space expands/contracts about the mouse's position
 
@@ -71,28 +75,17 @@ class GraphApp:
         self.renderer.draw_axes()
         self.renderer.draw_ticks()
     
+    def do_animations(self):
+        for graph in self.graphObjects:
+            if isinstance(graph.drawable, AnimatedPoint):
+                graph.drawable.update(self.fps)
+    
     def add_graphObject(self, obj: GraphObject):
         self.graphObjects.append(obj)
-    
-    def add_tracePoint(self, x: int, obj):
-        self.tracedPoints.append([x, obj])
-    
-    def add_animatedPoint(self, obj: AnimatedPoint):
-        self.animatedPoints.append(obj)
     
     def draw_graphObjects(self):
         for graph in self.graphObjects:
             self.renderer.draw_graph(graph)
-    
-    def draw_tracePoints(self):
-        for x, func in self.tracedPoints:
-            y = func.evaluate(x)
-            self.renderer.draw_graph(GraphObject(obj=Point([x,y]),style=self.traceStyle))
-    
-    def draw_animatedPoints(self):
-        for obj in self.animatedPoints:
-            obj.update(self.fps)
-            self.renderer.draw_graph(GraphObject(obj=Point(obj.pos),style=self.traceStyle))
     
     def end_frame(self):
         self.screen.blit(self.renderer.overlay,(0,0))
@@ -119,7 +112,7 @@ class GraphApp:
                         obj.show()
                 
                 
-                        
+
                         
     
     def handle_inputs(self):
@@ -138,9 +131,8 @@ class GraphApp:
             self.handle_inputs()
             
             self.begin_frame()
+            self.do_animations()
             self.draw_graphObjects()
-            self.draw_animatedPoints()
-            self.draw_tracePoints()
             self.end_frame()
         pygame.quit()
     

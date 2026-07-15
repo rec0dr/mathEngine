@@ -216,7 +216,7 @@ class Combination(Function):
 
 # Classes for eqs
 
-class LinEq(Function):
+class Linear(Function):
     def __init__(self, a, b, c, eqString=None, graphColor = "black", graphAcc0 = 0.005*scalaX):
         self.a = float(a)
         self.b = float(b)
@@ -821,7 +821,7 @@ def redraw():
     for eqn in eqns2:
         if isinstance(eqn, Parametric):
             eqn.graph(tMin=eqn.tMin, tMax=eqn.tMax, acc0=eqn.graphAcc0, color=eqn.graphColor)
-        elif not isinstance(eqn, LinEq) and not isinstance(eqn, Point):
+        elif not isinstance(eqn, Linear) and not isinstance(eqn, Point):
             eqn.graph(acc0=eqn.graphAcc0, color=eqn.graphColor)
         else:
             eqn.graph(color=eqn.graphColor)

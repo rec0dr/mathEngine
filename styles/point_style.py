@@ -6,3 +6,4 @@ class PointStyle(Style):
     is_solid: bool = True
     radiusPX: float = 3
     border_widthPX: int = 0
+    labeled: bool = False

@@ -1,5 +1,7 @@
 import math
 from enum import Enum
+from .curve import Curve
+from styles.curve_style import CurveStyle
 
 class Operation(Enum):
     ADD = "+"
@@ -10,7 +12,11 @@ class Operation(Enum):
 
 # Function combination logic
 
-class Function:
+class Function(Curve):
+
+    def __init__(self):
+        super().__init__()
+
     # Function combo logic
     
     def __add__(self, other):
@@ -65,6 +71,14 @@ class Function:
     def to_expression(self):
         return "y = " + str(self)
     
+    # For superclass Curve
+    
+    def point(self, x):
+        return (x, self.evaluate(x))
+    
+    def parameter_interval(self, renderer):
+        return renderer.boundL, renderer.boundR
+    
     # Framework for subclasses
     
     def evaluate(self, x):
@@ -75,6 +89,7 @@ class Function:
     
 class Combination(Function):
     def __init__(self, left, operation, right):
+        super().__init__()
         self.left = left
         self.right = right
         self.operation = operation
@@ -101,6 +116,7 @@ class Combination(Function):
 
 class Constant(Function):
     def __init__(self, value):
+        super().__init__()
         self.value = value
     
     def __str__(self):
@@ -111,6 +127,7 @@ class Constant(Function):
 
 class Variable(Function):
     def __init__(self, name):
+        super().__init__()
         self.name = name
     
     def __str__(self):

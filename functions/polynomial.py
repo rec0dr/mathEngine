@@ -3,6 +3,7 @@ from .function import Function
 class Polynomial(Function):
     
     def __init__(self, *coefficients, eqString=None):
+        super().__init__()
         self.coefficients = coefficients
         self.deg = len(self.coefficients) - 1
         self._custom_eqString = eqString
