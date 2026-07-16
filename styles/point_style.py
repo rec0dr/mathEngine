@@ -1,5 +1,6 @@
 from .style import Style
-from dataclasses import dataclass
+from .text_style import TextStyle
+from dataclasses import dataclass, field
 
 @dataclass
 class PointStyle(Style):
@@ -7,3 +8,4 @@ class PointStyle(Style):
     radius_px: float = 3
     border_width_px: int = 0
     labeled: bool = False
+    label_text_style: TextStyle = None

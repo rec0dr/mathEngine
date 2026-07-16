@@ -4,12 +4,13 @@ from styles.__init__ import *
 from objects.__init__ import *
 from graphing.__init__ import *
 
-width, height = (1200, 1200)
+width, height = (600, 600)
 scaleX, scaleY = (10,10)
 app = GraphApp(width, height, scaleX, scaleY, fps=60, pan_sensitivity=100, zoom_sensitivity=100)
 app.renderer.default_CurveStyle = CurveStyle(BLUE, thickness=2)
-func0 = PARAMETRIC_ELLIPSE(2, 5)
-func1 = AnimatedPoint(func0, 0, 0.5)
-app.add_graphObject(GraphObject(func0))
-app.add_graphObject(GraphObject(func1, PointStyle(radius_px=10, labeled=True)))
+app.renderer.default_PointStyle = PointStyle(color=RED, radius_px=3, border_width_px=0, labeled=True)
+
+app.add_graphObject(GraphObject(AnimatedPoint(Sinusoid.from_basic(TrigType.SIN), 0, 1)))
+app.add_graphObject(GraphObject(Sinusoid.from_basic(TrigType.SIN)))
+app.add_graphObject(GraphObject(PARAMETRIC_ELLIPSE(1,3), style=CurveStyle(RED, thickness=2)))
 app.run()

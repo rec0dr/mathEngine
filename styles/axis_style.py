@@ -12,8 +12,10 @@ class AxisStyle(Style):
     draw_y: bool = True
 
     show_arrows: bool = True
+    arrow_dims: tuple[int, int] = (50, 20)
     show_origin: bool = True
+    origin_radius: int = 10
 
-    label_x: AxisLabel = field(default_factory=lambda: AxisLabel("x"))
-    label_y: AxisLabel = field(default_factory=lambda: AxisLabel("y"))
+    label_x: AxisLabel = None
+    label_y: AxisLabel = None
     label_negatives: bool = False

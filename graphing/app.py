@@ -87,6 +87,9 @@ class GraphApp:
         for graph in self.graphObjects:
             self.renderer.draw_graph(graph)
     
+    def draw_UI(self):
+        self.renderer.draw_overlay()
+    
     def end_frame(self):
         self.screen.blit(self.renderer.overlay,(0,0))
         pygame.display.flip()
@@ -97,8 +100,46 @@ class GraphApp:
                 self.running = False
     
     def key_inputs(self, events):
+        keys = pygame.key.get_pressed()
+        multi = 1
+        if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+            multi = 5
+        pan_ratio = 1 / 60
+        zoom_ratio = 1 / 3
+        #WASD/Arrows for panning
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            self.renderer.viewport.pan_by(0, self.renderer.viewport.scale_y * pan_ratio * multi)
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            self.renderer.viewport.pan_by(0, -self.renderer.viewport.scale_y * pan_ratio * multi)
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            self.renderer.viewport.pan_by(-self.renderer.viewport.scale_x * pan_ratio * multi, 0)
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            self.renderer.viewport.pan_by(self.renderer.viewport.scale_x * pan_ratio * multi, 0)
+
+        #Z/X for zooming in/out
+        if keys[pygame.K_z]:
+            zoom_factor = BASE_ZOOM_FACTOR ** (zoom_ratio * multi)
+            mx, my = pygame.mouse.get_pos()
+
+            x1, y1 = self.viewport.screen_to_graph(mx, my)
+            self.viewport.zoom_by(zoom_factor)
+            x2, y2 = self.viewport.screen_to_graph(mx, my)
+
+            self.viewport.pan_by(x1 - x2, y1 - y2)
+        if keys[pygame.K_x]:
+            zoom_factor = BASE_ZOOM_FACTOR ** (-zoom_ratio * multi)
+            mx, my = pygame.mouse.get_pos()
+
+            x1, y1 = self.viewport.screen_to_graph(mx, my)
+            self.viewport.zoom_by(zoom_factor)
+            x2, y2 = self.viewport.screen_to_graph(mx, my)
+
+            self.viewport.pan_by(x1 - x2, y1 - y2)
+
         for event in events:
             if event.type == pygame.KEYDOWN:
+                #Other key inputs
+                
                 if event.key == pygame.K_q:
                     self.running = False
                 elif event.key == pygame.K_f:
@@ -110,8 +151,9 @@ class GraphApp:
                 elif event.key == pygame.K_s:
                     for obj in self.graphObjects:
                         obj.show()
-                
-                
+                elif event.key == pygame.K_r:
+                    self.renderer.viewport.set_scale(10,10)
+                    self.renderer.viewport.pan_to(0,0)
 
                         
     
@@ -133,6 +175,7 @@ class GraphApp:
             self.begin_frame()
             self.do_animations(dt)
             self.draw_graphObjects()
+            self.draw_UI()
             self.end_frame()
         pygame.quit()
     

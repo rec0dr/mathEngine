@@ -1,7 +1,10 @@
 import math
 
+DEFAULT_WIDTH = 600
+DEFAULT_HEIGHT = 600
+
 class Viewport:
-    def __init__(self, w, h, scaleX=10, scaleY=10):
+    def __init__(self, w=DEFAULT_WIDTH, h=DEFAULT_HEIGHT, scaleX=10, scaleY=10):
         self.width = w
         self.height = h
 
@@ -13,6 +16,10 @@ class Viewport:
 
         self.ppu_x = (w/2) / scaleX
         self.ppu_y = (h/2) / scaleY
+    
+    def ui_scale(self, s):
+        """Scale any distance assuming it is only correct when the screen's dimensions are defaulted."""
+        return int(s * (self.width / DEFAULT_WIDTH))
 
     def graph_to_screen(self,x,y):
         screen_x = self.origin_x + self.ppu_x * x

@@ -17,20 +17,23 @@ from .graph_object import GraphObject
 
 class Renderer:
     def __init__(self, screen, viewport):
-        self.tick_font = pygame.font.SysFont(None, 25)
-        self.tick_font2 = pygame.font.SysFont(None, 18)
-
-        # Defaults
-        self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
-        self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
-        self.default_AxisStyle = AxisStyle((255,255,255), label_negatives=True, label_x = AxisLabel("x", TextStyle((0,0,255), font_size=25)), label_y = AxisLabel("y", TextStyle((255, 0, 0), font_size=25)))
-
-
         self.screen = screen
         self.viewport = viewport
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
         self.overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+
+        self.tick_font = pygame.font.SysFont(None, self.viewport.ui_scale(18))
+        self.tick_font2 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
+
+        # Defaults
+        self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
+        self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
+        self.default_AxisLabelX = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
+        self.default_AxisLabelY = AxisLabel("y", TextStyle((255,0,0), font_size=self.viewport.ui_scale(18)))
+        self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
+        self.default_PointTextStyle = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15), italic=True)
+        self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
 
     def clear(self):
         self.screen.fill((0,0,0))
@@ -51,14 +54,26 @@ class Renderer:
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), (x1, y1), (x2,y2), style.thickness)
     
-    def draw_text_px(self, x, y, txt, style: TextStyle):
+    def draw_text_px(self, x=None, y=None, txt="", style: TextStyle = None, xLeft=None, xRight=None, yBot=None, yTop=None):
+        if style is None:
+            style = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15))
         if style.visible:
             font = pygame.font.SysFont(style.font_type, style.font_size, style.bold, style.italic)
             text = font.render(txt, True, (*style.color, style.opacity))
 
             text_rect = text.get_rect()
-
-            text_rect.centerx, text_rect.centery = x, y
+            if xLeft is not None:
+                text_rect.left = xLeft
+            if xRight is not None:
+                text_rect.right = xRight
+            if yBot is not None:
+                text_rect.bottom = yBot
+            if yTop is not None:
+                text_rect.top = yTop
+            if x is not None:
+                text_rect.centerx = x
+            if y is not None:
+                text_rect.centery = y
             
             self.screen.blit(text, text_rect)
 
@@ -69,43 +84,46 @@ class Renderer:
             style = self.default_AxisStyle
         self.update_bounds()
 
+        offset_l, offset_w = self.viewport.ui_scale(30), self.viewport.ui_scale(10)
+
         if style.draw_x:
             self.draw_line(self.boundL, 0, self.boundR, 0, style)
             if style.label_x.text != "":
                 x,y = self.viewport.graph_to_screen(self.boundR, 0)
-                self.draw_text_px(x-20, y+60, style.label_x.text, style.label_x.style)
+                self.draw_text_px(x-offset_w, y+offset_l, style.label_x.text, style.label_x.style)
                 if style.label_negatives:
                     x,y = self.viewport.graph_to_screen(self.boundL, 0)
-                    self.draw_text_px(x+20, y+60, style.label_x.text, style.label_x.style)
+                    self.draw_text_px(x+offset_w, y+offset_l, style.label_x.text, style.label_x.style)
 
         if style.draw_y:
             self.draw_line(0, self.boundD, 0, self.boundU, style)
             if style.label_y.text != "":
                 x,y = self.viewport.graph_to_screen(0, self.boundU)
-                self.draw_text_px(x+60, y+20, style.label_y.text, style.label_y.style)
+                self.draw_text_px(x+offset_l, y+offset_w, style.label_y.text, style.label_y.style)
                 if style.label_negatives:
                     x,y = self.viewport.graph_to_screen(0, self.boundD)
-                    self.draw_text_px(x+60, y-20, style.label_y.text, style.label_y.style)
+                    self.draw_text_px(x+offset_l, y-offset_w, style.label_y.text, style.label_y.style)
         
         if style.show_origin:
-            pygame.draw.circle(self.overlay, (255,255,255,255), (self.viewport.graph_to_screen(0,0)), 10)
+            pygame.draw.circle(self.overlay, (255,255,255,255), (self.viewport.graph_to_screen(0,0)), style.origin_radius)
         
         if style.show_arrows:
             x,y = self.viewport.graph_to_screen(self.boundR, 0)
-            self.draw_line_px(x-20,y-50,x,y,style)
-            self.draw_line_px(x,y,x-20,y+50,style)
+            l,w = style.arrow_dims
+            self.draw_line_px(x-w,y-l,x,y,style)
+            self.draw_line_px(x,y,x-w,y+l,style)
 
             x,y = self.viewport.graph_to_screen(self.boundL, 0)
-            self.draw_line_px(x+20,y-50,x,y,style)
-            self.draw_line_px(x,y,x+20,y+50,style)
+            self.draw_line_px(x+w,y-l,x,y,style)
+            self.draw_line_px(x,y,x+w,y+l,style)
 
             x,y = self.viewport.graph_to_screen(0, self.boundU)
-            self.draw_line_px(x-50,y+20,x,y,style)
-            self.draw_line_px(x,y,x+50,y+20,style)
+            self.draw_line_px(x-l,y+w,x,y,style)
+            self.draw_line_px(x,y,x+l,y+w,style)
 
             x,y = self.viewport.graph_to_screen(0, self.boundD)
-            self.draw_line_px(x-50,y-20,x,y,style)
-            self.draw_line_px(x,y,x+50,y-20,style)
+            self.draw_line_px(x-l,y-w,x,y,style)
+            self.draw_line_px(x,y,x+l,y-w,style)
         
     
     def draw_ticks(self, style: AxisStyle = None):
@@ -117,14 +135,14 @@ class Renderer:
         amtX = math.log(self.viewport.scale_x, factorX)
         major_distX = factorX**(math.floor(amtX))
         minor_distX = major_distX / factorX
-        major_heightX = major_distX / 5
-        minor_heightX = major_heightX / 4
+        major_heightX = major_distX / 10
+        minor_heightX = major_heightX / factorX
 
         amtY = math.log(self.viewport.scale_y, factorY)
         major_distY = factorY**(math.floor(amtY))
         minor_distY = major_distY / factorY
-        major_heightY = major_distY / 5
-        minor_heightY = major_heightY / 4
+        major_heightY = major_distY / 10
+        minor_heightY = major_heightY / factorY
 
         major_heightX = min(major_heightX, major_heightY)
         major_heightY = major_heightX
@@ -222,7 +240,10 @@ class Renderer:
         if style.visible:
             pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radius_px, style.border_width_px)
         if style.labeled:
-            text = self.tick_font2.render(f"({point.x:.3}, {point.y:.3})", True, (255,255,255))
+            if style.label_text_style is None:
+                style.label_text_style = self.default_PointTextStyle
+            font = pygame.font.SysFont(style.label_text_style.font_type, style.label_text_style.font_size, style.label_text_style.bold, style.label_text_style.italic)
+            text = font.render(f"({point.x:.3}, {point.y:.3})", True, (*style.label_text_style.color, style.label_text_style.opacity))
             text_rect = text.get_rect()
             screen_y = y - style.radius_px
             text_rect.centerx = x
@@ -260,4 +281,12 @@ class Renderer:
                 self.draw_line(x1, y1, x2, y2, style)
                 x1, y1 = x2, y2
                 t += graphAccuracy
+    
+    def draw_overlay(self, style: TextStyle = None):
+        if style is None:
+            style = self.default_UITextStyle
+        firstY = self.viewport.ui_scale(20)
+        oneLine = style.font_size
+        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", style=style)
+        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY + oneLine, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", style=style)
 

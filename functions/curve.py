@@ -9,3 +9,4 @@ class Curve:
     def parameter_interval(self, renderer):
         """Return the parameter interval of the function (domain)."""
         raise NotImplementedError
+    
