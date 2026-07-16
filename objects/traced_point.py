@@ -7,6 +7,9 @@ class TracedPoint(Point):
         self.parameter = parameter
         self.x, self.y = self.curve.point(self.parameter)
     
+    def update(self, dt):
+        self.x, self.y = self.curve.point(self.parameter)
+    
     def moveBy(self, parameter_increment: float):
         self.parameter += parameter_increment
         self.x, self.y = self.curve.point(self.parameter)

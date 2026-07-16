@@ -2,12 +2,14 @@ import pygame
 import time
 
 from .viewport import Viewport
+from anim.animation import Animation
 from .renderer import Renderer
 from styles.point_style import PointStyle
 from functions.function import Function
 from functions.parametric import Parametric
 from objects.point import Point
 from objects.animated_point import AnimatedPoint
+from objects.traced_point import TracedPoint
 from .graph_object import GraphObject
 
 
@@ -34,6 +36,7 @@ class GraphApp:
         self.fps = fps
 
         self.graphObjects = []
+        self.animations = []
 
         self.traceStyle = PointStyle(color=(255,0,0),opacity=255,visible=True,is_solid=True)
 
@@ -75,13 +78,23 @@ class GraphApp:
         self.renderer.draw_axes()
         self.renderer.draw_ticks()
     
-    def do_animations(self, dt):
+    def move_animPoints(self, dt):
         for graph in self.graphObjects:
-            if isinstance(graph.drawable, AnimatedPoint):
+            if isinstance(graph.drawable, (AnimatedPoint, TracedPoint)):
                 graph.drawable.update(dt)
+    
+    def update_animations(self, dt):
+        for animation in self.animations:
+            animation.update(dt)
+            
+            if animation.finished:
+                self.animations.remove(animation)
     
     def add_graphObject(self, obj: GraphObject):
         self.graphObjects.append(obj)
+
+    def add_animation(self, animation: Animation):
+        self.animations.append(animation)
     
     def draw_graphObjects(self):
         for graph in self.graphObjects:
@@ -145,12 +158,6 @@ class GraphApp:
                 elif event.key == pygame.K_f:
                     current_fps = self.clock.get_fps()
                     print(current_fps)
-                elif event.key == pygame.K_h:
-                    for obj in self.graphObjects:
-                        obj.hide()
-                elif event.key == pygame.K_s:
-                    for obj in self.graphObjects:
-                        obj.show()
                 elif event.key == pygame.K_r:
                     self.renderer.viewport.set_scale(10,10)
                     self.renderer.viewport.pan_to(0,0)
@@ -173,7 +180,8 @@ class GraphApp:
             self.handle_inputs()
             
             self.begin_frame()
-            self.do_animations(dt)
+            self.move_animPoints(dt)
+            self.update_animations(dt)
             self.draw_graphObjects()
             self.draw_UI()
             self.end_frame()

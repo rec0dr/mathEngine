@@ -48,7 +48,7 @@ class Renderer:
         p2 = self.viewport.graph_to_screen(x2, y2)
 
         if style.visible:
-            pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, style.thickness)
+            pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, int(style.thickness))
     
     def draw_line_px(self, x1, y1, x2, y2, style):
         if style.visible:
@@ -243,7 +243,7 @@ class Renderer:
             if style.label_text_style is None:
                 style.label_text_style = self.default_PointTextStyle
             font = pygame.font.SysFont(style.label_text_style.font_type, style.label_text_style.font_size, style.label_text_style.bold, style.label_text_style.italic)
-            text = font.render(f"({point.x:.3}, {point.y:.3})", True, (*style.label_text_style.color, style.label_text_style.opacity))
+            text = font.render(f"({point.x:g}, {point.y:g})", True, (*style.label_text_style.color, style.label_text_style.opacity))
             text_rect = text.get_rect()
             screen_y = y - style.radius_px
             text_rect.centerx = x
