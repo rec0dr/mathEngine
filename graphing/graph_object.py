@@ -1,7 +1,7 @@
 import math
 
 class GraphObject:
-    def __init__(self, drawable, style):
+    def __init__(self, drawable, style=None):
         self.drawable = drawable
         self.style = style
         self.visible = True

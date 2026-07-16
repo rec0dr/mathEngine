@@ -10,12 +10,22 @@ from objects.line_segment import LineSegment
 from styles.style import Style
 from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
+from styles.axis_style import AxisStyle
+from styles.text_style import TextStyle
+from styles.axis_label import AxisLabel
 from .graph_object import GraphObject
 
 class Renderer:
     def __init__(self, screen, viewport):
         self.tick_font = pygame.font.SysFont(None, 25)
         self.tick_font2 = pygame.font.SysFont(None, 18)
+
+        # Defaults
+        self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
+        self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
+        self.default_AxisStyle = AxisStyle((255,255,255), label_negatives=True, label_x = AxisLabel("x", TextStyle((0,0,255), font_size=25)), label_y = AxisLabel("y", TextStyle((255, 0, 0), font_size=25)))
+
+
         self.screen = screen
         self.viewport = viewport
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
@@ -30,31 +40,77 @@ class Renderer:
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
 
-    def draw_line(self, x1, y1, x2, y2, style: CurveStyle = CurveStyle()):
+    def draw_line(self, x1, y1, x2, y2, style):
         p1 = self.viewport.graph_to_screen(x1, y1)
         p2 = self.viewport.graph_to_screen(x2, y2)
 
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, style.thickness)
     
-    def draw_axes(self, style: CurveStyle = CurveStyle()):
+    def draw_line_px(self, x1, y1, x2, y2, style):
+        if style.visible:
+            pygame.draw.line(self.overlay, (*style.color, style.opacity), (x1, y1), (x2,y2), style.thickness)
+    
+    def draw_text_px(self, x, y, txt, style: TextStyle):
+        if style.visible:
+            font = pygame.font.SysFont(style.font_type, style.font_size, style.bold, style.italic)
+            text = font.render(txt, True, (*style.color, style.opacity))
+
+            text_rect = text.get_rect()
+
+            text_rect.centerx, text_rect.centery = x, y
+            
+            self.screen.blit(text, text_rect)
+
+
+    
+    def draw_axes(self, style: AxisStyle = None):
+        if style is None:
+            style = self.default_AxisStyle
         self.update_bounds()
 
-        self.draw_line(self.boundL, 0, self.boundR, 0, style)
-        self.draw_line(0, self.boundD, 0, self.boundU, style)
+        if style.draw_x:
+            self.draw_line(self.boundL, 0, self.boundR, 0, style)
+            if style.label_x.text != "":
+                x,y = self.viewport.graph_to_screen(self.boundR, 0)
+                self.draw_text_px(x-20, y+60, style.label_x.text, style.label_x.style)
+                if style.label_negatives:
+                    x,y = self.viewport.graph_to_screen(self.boundL, 0)
+                    self.draw_text_px(x+20, y+60, style.label_x.text, style.label_x.style)
+
+        if style.draw_y:
+            self.draw_line(0, self.boundD, 0, self.boundU, style)
+            if style.label_y.text != "":
+                x,y = self.viewport.graph_to_screen(0, self.boundU)
+                self.draw_text_px(x+60, y+20, style.label_y.text, style.label_y.style)
+                if style.label_negatives:
+                    x,y = self.viewport.graph_to_screen(0, self.boundD)
+                    self.draw_text_px(x+60, y-20, style.label_y.text, style.label_y.style)
+        
+        if style.show_origin:
+            pygame.draw.circle(self.overlay, (255,255,255,255), (self.viewport.graph_to_screen(0,0)), 10)
+        
+        if style.show_arrows:
+            x,y = self.viewport.graph_to_screen(self.boundR, 0)
+            self.draw_line_px(x-20,y-50,x,y,style)
+            self.draw_line_px(x,y,x-20,y+50,style)
+
+            x,y = self.viewport.graph_to_screen(self.boundL, 0)
+            self.draw_line_px(x+20,y-50,x,y,style)
+            self.draw_line_px(x,y,x+20,y+50,style)
+
+            x,y = self.viewport.graph_to_screen(0, self.boundU)
+            self.draw_line_px(x-50,y+20,x,y,style)
+            self.draw_line_px(x,y,x+50,y+20,style)
+
+            x,y = self.viewport.graph_to_screen(0, self.boundD)
+            self.draw_line_px(x-50,y-20,x,y,style)
+            self.draw_line_px(x,y,x+50,y-20,style)
+        
     
-    def draw_tick_text(self, x, y):
-        # print(self.tick_font)
-        text = self.tick_font.render(f"{x:g}", True, (255,255,255))
-
-        text_rect = text.get_rect()
-        screen_x, screen_y = self.viewport.graph_to_screen(x, y)
-
-        text_rect.centerx = screen_x
-
-        self.screen.blit(text, text_rect)
-    
-    def draw_ticks(self, style=None):
+    def draw_ticks(self, style: AxisStyle = None):
+        if style is None:
+            style = self.default_AxisStyle
         self.update_bounds()
         factorX = 10
         factorY = 10
@@ -89,7 +145,7 @@ class Renderer:
             if i == 0:
                 continue
             if i % factorX == 0:
-                self.draw_line(x, major_heightX, x, -major_heightX)
+                self.draw_line(x, major_heightX, x, -major_heightX, style)
                 
                 text = self.tick_font.render(f"{x:g}", True, (255,255,255))
 
@@ -101,7 +157,7 @@ class Renderer:
 
                 self.screen.blit(text, text_rect)
             elif minor_visibilityX:
-                self.draw_line(x, minor_heightX, x, -minor_heightX)
+                self.draw_line(x, minor_heightX, x, -minor_heightX, style)
 
                 text = self.tick_font2.render(f"{x:g}", True, (255,255,255))
 
@@ -123,7 +179,7 @@ class Renderer:
                 continue
 
             if i % factorY == 0:
-                self.draw_line(major_heightY, y, -major_heightY, y)
+                self.draw_line(major_heightY, y, -major_heightY, y, style)
                 text = self.tick_font.render(f"{y:g}", True, (255,255,255))
 
                 text_rect = text.get_rect()
@@ -135,7 +191,7 @@ class Renderer:
                 self.screen.blit(text, text_rect)
 
             elif minor_visibilityY:
-                self.draw_line(minor_heightY, y, -minor_heightY, y)
+                self.draw_line(minor_heightY, y, -minor_heightY, y, style)
                 text = self.tick_font2.render(f"{y:g}", True, (255,255,255))
 
                 text_rect = text.get_rect()
@@ -157,22 +213,26 @@ class Renderer:
         elif isinstance(func, Point):
             self.draw_point(func, style)
         
-    def draw_point(self, point: Point, style: PointStyle = PointStyle()):
+    def draw_point(self, point: Point, style: PointStyle = None):
+        if style is None:
+            style = self.default_PointStyle
         x, y = self.viewport.graph_to_screen(point.x, point.y)
         if style.is_solid:
-            style.border_widthPX = 0
+            style.border_width_px = 0
         if style.visible:
-            pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radiusPX, style.border_widthPX)
+            pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radius_px, style.border_width_px)
         if style.labeled:
             text = self.tick_font2.render(f"({point.x:.3}, {point.y:.3})", True, (255,255,255))
             text_rect = text.get_rect()
-            screen_y = y - style.radiusPX
+            screen_y = y - style.radius_px
             text_rect.centerx = x
             text_rect.bottom = screen_y
 
             self.screen.blit(text, text_rect)
 
-    def draw_curve(self, curve: Curve, style: CurveStyle = CurveStyle(), graphAccuracy=None):
+    def draw_curve(self, curve: Curve, style: CurveStyle = None, graphAccuracy=None):
+        if style is None:
+            style = self.default_CurveStyle
         self.update_bounds()
         if graphAccuracy is None:
             min_parameter, max_parameter = curve.parameter_interval(self)

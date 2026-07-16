@@ -75,10 +75,10 @@ class GraphApp:
         self.renderer.draw_axes()
         self.renderer.draw_ticks()
     
-    def do_animations(self):
+    def do_animations(self, dt):
         for graph in self.graphObjects:
             if isinstance(graph.drawable, AnimatedPoint):
-                graph.drawable.update(self.fps)
+                graph.drawable.update(dt)
     
     def add_graphObject(self, obj: GraphObject):
         self.graphObjects.append(obj)
@@ -127,11 +127,11 @@ class GraphApp:
     def run(self):
         self.running = True
         while self.running:
-            self.clock.tick(self.fps)
+            dt = self.clock.tick(self.fps) / 1000
             self.handle_inputs()
             
             self.begin_frame()
-            self.do_animations()
+            self.do_animations(dt)
             self.draw_graphObjects()
             self.end_frame()
         pygame.quit()

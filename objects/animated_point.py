@@ -7,6 +7,6 @@ class AnimatedPoint(TracedPoint):
         self.motion = motion
         super().__init__(curve, tStart)
     
-    def update(self, fps):
-        self.moveBy(self.motion/fps)
+    def update(self, dt):
+        self.moveBy(self.motion*dt)
 
