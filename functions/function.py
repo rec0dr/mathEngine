@@ -21,7 +21,7 @@ class Function(Curve):
     
     def __add__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(self, Operation.ADD, other)
 
     def __radd__(self, other):
@@ -29,17 +29,17 @@ class Function(Curve):
     
     def __sub__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(self, Operation.SUBTRACT, other)
     
     def __rsub__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(other, Operation.SUBTRACT, self)
     
     def __mul__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(self, Operation.MULTIPLY, other)
     
     def __rmul__(self, other):
@@ -47,26 +47,26 @@ class Function(Curve):
     
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(self, Operation.DIVIDE, other)
     
     def __rtruediv__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(other, Operation.DIVIDE, self) 
     
     def __pow__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(self, Operation.POWER, other)
     
     def __rpow__(self, other):
         if isinstance(other, (int, float)):
-            other = Constant(other)
+            other = Value(other)
         return Combination(other, Operation.POWER, self)
     
     def __neg__(self):
-        return Combination(Constant(0), Operation.SUBTRACT, self)
+        return Combination(Value(0), Operation.SUBTRACT, self)
 
     def to_expression(self):
         return "y = " + str(self)
@@ -114,7 +114,7 @@ class Combination(Function):
     def __str__(self):
         return f"({str(self.left)}) {self.operation.value} ({str(self.right)})"
 
-class Constant(Function):
+class Value(Function):
     def __init__(self, value):
         super().__init__()
         self.value = value

@@ -13,9 +13,13 @@ class Viewport:
 
         self.scale_x = scaleX
         self.scale_y = scaleY
-
-        self.ppu_x = (w/2) / scaleX
-        self.ppu_y = (h/2) / scaleY
+    
+    @property
+    def ppu_x(self):
+        return (self.width / 2) / self.scale_x
+    @property
+    def ppu_y(self):
+        return (self.height / 2) / self.scale_y
     
     def ui_scale(self, s):
         """Scale any distance assuming it is only correct when the screen's dimensions are defaulted."""
@@ -34,8 +38,6 @@ class Viewport:
     def zoom_by(self, scaleX, scaleY=None):
         if scaleY is None:
             scaleY = scaleX
-        self.ppu_x *= scaleX
-        self.ppu_y *= scaleY
         self.scale_x /= scaleX
         self.scale_y /= scaleY
 
@@ -43,8 +45,6 @@ class Viewport:
         if scaleY is None:
             scaleY = scaleX
         self.scale_x, self.scale_y = scaleX, scaleY
-        self.ppu_x = self.width / scaleX / 2
-        self.ppu_y = self.height / scaleY / 2
 
     def pan_by(self, dx, dy):
         self.origin_x -= (self.ppu_x) * dx

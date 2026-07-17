@@ -25,6 +25,13 @@ class Animation:
         self.elapsed = 0
         self.finished = False
     
+    @classmethod
+    def multiple(cls, target, duration, ease_type, **attrs):
+        return [
+            cls(target, name, end, duration, ease_type, start=getattr(target, name)) 
+            for name, end in attrs.items()
+        ]
+    
     def linear(self, a, b, t):
         if isinstance(a, tuple):
             return tuple(self.linear(x, y, t) for x, y in zip(a, b))
@@ -49,5 +56,7 @@ class Animation:
             value = self.linear(a, b, t)
         elif self.ease_type == EaseType.SIN_SMOOTH:
             value = self.sin_smooth(a, b, t)
+        else:
+            raise ValueError(f"Unknown easing type: {self.ease_type}")
         
         setattr(self.target, self.property_name, value)

@@ -3,7 +3,7 @@ import math
 
 from .viewport import Viewport
 from functions.curve import Curve
-from functions.function import Function, Constant
+from functions.function import Function, Value
 from functions.parametric import Parametric
 from objects.point import Point
 from objects.line_segment import LineSegment
@@ -36,7 +36,7 @@ class Renderer:
         self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
         self.default_PointTextStyle = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15), italic=True)
         self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
-        self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 5, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
+        self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
         self.default_MinorTickStyle = TickStyle((255,255,255), 128, True, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
 
     def clear(self):

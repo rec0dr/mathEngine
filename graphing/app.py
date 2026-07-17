@@ -2,7 +2,7 @@ import pygame
 import time
 
 from .viewport import Viewport
-from anim.animation import Animation
+from anim.animation import Animation, EaseType
 from .renderer import Renderer
 from styles.point_style import PointStyle
 from functions.function import Function
@@ -89,13 +89,48 @@ class GraphApp:
             
             if animation.finished:
                 self.animations.remove(animation)
-    
-    def add_graphObject(self, obj: GraphObject):
-        self.graphObjects.append(obj)
 
     def add_animation(self, animation: Animation):
         self.animations.append(animation)
     
+    def animate_to(
+        self,
+        center=None,
+        scale=None,
+        duration=3,
+        ease_type=EaseType.SIN_SMOOTH
+    ):
+        attrs = {}
+
+        if center is not None:
+            center_x, center_y = center
+
+            attrs["origin_x"] = (
+                self.viewport.width / 2
+                - center_x * self.viewport.ppu_x
+            )
+
+            attrs["origin_y"] = (
+                self.viewport.height / 2
+                + center_y * self.viewport.ppu_y
+            )
+
+        if scale is not None:
+            scale_x, scale_y = scale
+            attrs["scale_x"] = scale_x
+            attrs["scale_y"] = scale_y
+
+        for animation in Animation.multiple(
+            self.viewport,
+            duration,
+            ease_type,
+            **attrs
+        ):
+            self.add_animation(animation)
+    
+    def add_graphObject(self, obj: GraphObject):
+        self.graphObjects.append(obj)
+
     def draw_graphObjects(self):
         for graph in self.graphObjects:
             self.renderer.draw_graph(graph)
@@ -161,8 +196,7 @@ class GraphApp:
                     current_fps = self.clock.get_fps()
                     print(current_fps)
                 elif event.key == pygame.K_r:
-                    self.renderer.viewport.set_scale(10,10)
-                    self.renderer.viewport.pan_to(0,0)
+                    self.animate_to((0,0),(10,10),duration=3, ease_type=EaseType.SIN_SMOOTH)
 
                         
     
