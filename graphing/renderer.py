@@ -246,6 +246,7 @@ class Renderer:
         if style.labeled:
             if style.label_style is None:
                 style.label_style = self.default_PointTextStyle
+            style.label_style.font_size = int(style.label_style.font_size)
             font = pygame.font.SysFont(style.label_style.font_type, style.label_style.font_size, style.label_style.bold, style.label_style.italic)
             text = font.render(f"({point.x:g}, {point.y:g})", True, (*style.label_style.color, style.label_style.opacity))
             text_rect = text.get_rect()

@@ -46,7 +46,7 @@ class GraphApp:
         if pygame.mouse.get_pressed()[0]:
             factor = 1/100 * BASE_SENSITIVITY_POWER
             dx = -dx * (self.pan_sensitivity*factor)
-            dy = dy * (self.pan_sensitivity*factor)
+            dy = -dy * (self.pan_sensitivity*factor)
             self.viewport.pan_pixels(dx, dy)
     
     def zoom_mouse(self, events):
@@ -93,6 +93,9 @@ class GraphApp:
     def add_animation(self, animation: Animation):
         self.animations.append(animation)
     
+    def add_animations(self, animations: list[Animation]):
+        self.animations.extend(animations)
+    
     def animate_to(
         self,
         center=None,
@@ -105,15 +108,8 @@ class GraphApp:
         if center is not None:
             center_x, center_y = center
 
-            attrs["origin_x"] = (
-                self.viewport.width / 2
-                - center_x * self.viewport.ppu_x
-            )
-
-            attrs["origin_y"] = (
-                self.viewport.height / 2
-                + center_y * self.viewport.ppu_y
-            )
+            attrs["center_x"] = center_x
+            attrs["center_y"] = center_y
 
         if scale is not None:
             scale_x, scale_y = scale

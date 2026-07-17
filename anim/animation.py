@@ -14,6 +14,7 @@ class Animation:
             self.target = getattr(self.target, part)
         
         self.property_name = parts[-1]
+        # print(self.target, self.property_name)
 
         if start is None:
             start = getattr(self.target, self.property_name)
@@ -26,9 +27,9 @@ class Animation:
         self.finished = False
     
     @classmethod
-    def multiple(cls, target, duration, ease_type, **attrs):
+    def multiple(cls, target, duration=1, ease_type=EaseType.LINEAR, **attrs):
         return [
-            cls(target, name, end, duration, ease_type, start=getattr(target, name)) 
+            cls(target, name, end, duration, ease_type) 
             for name, end in attrs.items()
         ]
     

@@ -11,7 +11,16 @@ app = GraphApp(width, height, scaleX, scaleY, fps=60, pan_sensitivity=100, zoom_
 app.renderer.default_AxisStyle.arrow_dims = (20,10)
 
 
-func0 = SIN
-app.add_graphObject(GraphObject(func0))
+point0 = GraphObject(Point((3,5)), style=PointStyle(labeled=True, label_style=TextStyle(font_size=25, color=(255,0,0))))
+app.add_graphObject(point0)
 
+animations = Animation.multiple(point0, 5, EaseType.SIN_SMOOTH, **{
+    "drawable.x": -3,
+    "drawable.y": 2,
+    "style.color": (0,0,255),
+    "style.radius_px": 10,
+    "style.label_style.color": (0,0,255),
+    "style.label_style.font_size": 50
+})
+app.add_animations(animations)
 app.run()

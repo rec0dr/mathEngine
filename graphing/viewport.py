@@ -8,12 +8,20 @@ class Viewport:
         self.width = w
         self.height = h
 
-        self.origin_x = w/2
-        self.origin_y = h/2
+        self.center_x = 0
+        self.center_y = 0
 
         self.scale_x = scaleX
         self.scale_y = scaleY
     
+    @property
+    def origin_x(self):
+        return self.width / 2 - self.center_x * self.ppu_x
+    
+    @property
+    def origin_y(self):
+        return self.height / 2 + self.center_y * self.ppu_y
+
     @property
     def ppu_x(self):
         return (self.width / 2) / self.scale_x
@@ -47,16 +55,16 @@ class Viewport:
         self.scale_x, self.scale_y = scaleX, scaleY
 
     def pan_by(self, dx, dy):
-        self.origin_x -= (self.ppu_x) * dx
-        self.origin_y += (self.ppu_y) * dy
+        self.center_x += dx
+        self.center_y += dy
     
     def pan_to(self, x, y):
-        self.origin_x = (self.width/2) + x * self.ppu_x
-        self.origin_y = (self.height/2) + y * self.ppu_y
+        self.center_x = x
+        self.center_y = y
     
     def pan_pixels(self, dx, dy):
-        self.origin_x -= dx
-        self.origin_y += dy
+        self.center_x += (dx / self.ppu_x)
+        self.center_y -= (dy / self.ppu_y)
     
     def status(self):
         print(f"scaleX: {self.scale_x:.10}")
