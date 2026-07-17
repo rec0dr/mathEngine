@@ -8,4 +8,4 @@ class PointStyle(Style):
     radius_px: float = 3
     border_width_px: int = 0
     labeled: bool = False
-    label_text_style: TextStyle = None
+    label_style: TextStyle = None

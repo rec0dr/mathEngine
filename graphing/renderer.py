@@ -12,6 +12,7 @@ from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
 from styles.axis_style import AxisStyle
 from styles.text_style import TextStyle
+from styles.tick_style import TickStyle
 from styles.axis_label import AxisLabel
 from .graph_object import GraphObject
 
@@ -27,6 +28,7 @@ class Renderer:
         self.tick_font2 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
 
         # Defaults
+        self.default_BackgroundColor = (0,0,0)
         self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
         self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
         self.default_AxisLabelX = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
@@ -34,10 +36,12 @@ class Renderer:
         self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
         self.default_PointTextStyle = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15), italic=True)
         self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
+        self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 5, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
+        self.default_MinorTickStyle = TickStyle((255,255,255), 128, True, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
 
     def clear(self):
-        self.screen.fill((0,0,0))
-        self.overlay.fill((0,0,0,0))
+        self.screen.fill(self.default_BackgroundColor)
+        self.overlay.fill((*self.default_BackgroundColor, 0))
 
     def update_bounds(self):
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
@@ -126,99 +130,99 @@ class Renderer:
             self.draw_line_px(x,y,x+l,y-w,style)
         
     
-    def draw_ticks(self, style: AxisStyle = None):
+    def draw_ticks(self, style: TickStyle = None, style2: TickStyle = None):
         if style is None:
-            style = self.default_AxisStyle
+            style = self.default_MajorTickStyle
+        if style2 is None:
+            style2 = self.default_MinorTickStyle
+        
         self.update_bounds()
-        factorX = 10
-        factorY = 10
-        amtX = math.log(self.viewport.scale_x, factorX)
-        major_distX = factorX**(math.floor(amtX))
-        minor_distX = major_distX / factorX
-        major_heightX = major_distX / 10
-        minor_heightX = major_heightX / factorX
+        major_factorX = style.factor_x
+        major_factorY = style.factor_y
+        major_amtX = math.log(self.viewport.scale_x, major_factorX)
+        major_distX = major_factorX**(math.floor(major_amtX)) * style.base_dist0x
+        major_amtY = math.log(self.viewport.scale_y, major_factorY)
+        major_distY = major_factorY**(math.floor(major_amtY)) * style.base_dist0y
+        major_heightX = major_distX/5
+        major_heightY = major_distY/5
 
-        amtY = math.log(self.viewport.scale_y, factorY)
-        major_distY = factorY**(math.floor(amtY))
-        minor_distY = major_distY / factorY
-        major_heightY = major_distY / 10
-        minor_heightY = major_heightY / factorY
+        # For now, minor ticks are determined by same factor as major, possible custom later?
 
-        major_heightX = min(major_heightX, major_heightY)
-        major_heightY = major_heightX
-        minor_heightX = min(minor_heightX, minor_heightY)
-        minor_heightY = minor_heightX
+        minor_factorX = style.factor_x
+        minor_factorY = style.factor_y
+        minor_amtX = math.log(self.viewport.scale_x, minor_factorX)
+        minor_distX = minor_factorX**(math.floor(minor_amtX)) * style2.base_dist0x
+        minor_amtY = math.log(self.viewport.scale_y, minor_factorY)
+        minor_distY = minor_factorY**(math.floor(minor_amtY)) * style2.base_dist0y
+        minor_heightX = minor_distX/5
+        minor_heightY = minor_distY/5
 
-        first = math.floor(self.boundL / minor_distX)
-        last = math.ceil(self.boundR / minor_distX)
+
 
         ppu_x = self.viewport.ppu_x
         ppu_y = self.viewport.ppu_y
 
-        minor_visibilityX = (amtX <= math.floor(amtX) + 0.5)
-        minor_visibilityY = (amtY <= math.floor(amtY) + 0.5)
+        minor_visibilityX = (minor_amtX < math.floor(minor_amtX) + 1)
+        minor_visibilityY = (minor_amtY < math.floor(minor_amtY) + 1)
 
-        for i in range(first, last + 1):
-            x = i * minor_distX
-            if i == 0:
-                continue
-            if i % factorX == 0:
-                self.draw_line(x, major_heightX, x, -major_heightX, style)
-                
-                text = self.tick_font.render(f"{x:g}", True, (255,255,255))
+        fractionX = minor_amtX - math.floor(minor_amtX)
+        alpha_minorX = int(128 * (1 - fractionX)) + 127
+        alpha_majorX = 255 - alpha_minorX + 127
 
-                text_rect = text.get_rect()
-                screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
+        fractionY = minor_amtY - math.floor(minor_amtY)
+        alpha_minorY = int(128 * (1 - fractionY)) + 127
+        alpha_majorY = 255 - alpha_minorY + 127
 
-                text_rect.centerx = screen_x
-                text_rect.top = screen_y + (ppu_y * major_heightX * 1.1)
+        if style.visible or style2.visible:
+            first = math.floor(self.boundL / minor_distX)
+            last = math.ceil(self.boundR / minor_distX)
 
-                self.screen.blit(text, text_rect)
-            elif minor_visibilityX:
-                self.draw_line(x, minor_heightX, x, -minor_heightX, style)
+            for i in range(first, last + 1):
+                x = i * minor_distX
+                x = round(x, 10)
+                if i == 0:
+                    continue
+                if x % major_distX <= 1e-6:
+                    if style.visible:
+                        self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
 
-                text = self.tick_font2.render(f"{x:g}", True, (255,255,255))
+                        if style.labeled:
+                            screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
+                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", style=style.label_style)
+                    
+                elif minor_visibilityX:
+                    if style2.visible:
+                        self.draw_line(x, minor_heightX, x, -minor_heightX, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
 
-                text_rect = text.get_rect()
-                screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
-
-                text_rect.centerx = screen_x
-                text_rect.top = screen_y + (ppu_y * minor_heightX * 1.1)
-
-                self.screen.blit(text, text_rect)
+                        if style2.labeled:
+                            screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
+                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * minor_heightX * 1.1), txt=f"{x:g}", style=style2.label_style)
         
-        first = math.floor(self.boundD / minor_distY)
-        last = math.ceil(self.boundU / minor_distY)
+            first = math.floor(self.boundD / minor_distY)
+            last = math.ceil(self.boundU / minor_distY)
 
-        for i in range(first, last + 1):
-            y = i * minor_distY
+            for i in range(first, last + 1):
+                y = i * minor_distY
+                y = round(y, 10)
 
-            if i == 0:
-                continue
+                if i == 0:
+                    continue
 
-            if i % factorY == 0:
-                self.draw_line(major_heightY, y, -major_heightY, y, style)
-                text = self.tick_font.render(f"{y:g}", True, (255,255,255))
+                if y % major_distY <= 1e-6:
+                    if style.visible:
+                        self.draw_line(major_heightY, y, -major_heightY, y, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
 
-                text_rect = text.get_rect()
-                screen_x, screen_y = self.viewport.graph_to_screen(0, y)
+                        if style.labeled:
+                            screen_x, screen_y = self.viewport.graph_to_screen(0, y)
+                            self.draw_text_px(xRight=screen_x - (ppu_x * major_heightY * 1.1), y = screen_y, txt=f"{y:g}", style=style.label_style)
 
-                text_rect.centery = screen_y
-                text_rect.right = screen_x - (ppu_x * major_heightY * 1.1)
+                elif minor_visibilityY:
+                    if style2.visible:
+                        self.draw_line(minor_heightY, y, -minor_heightY, y, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
 
-                self.screen.blit(text, text_rect)
-
-            elif minor_visibilityY:
-                self.draw_line(minor_heightY, y, -minor_heightY, y, style)
-                text = self.tick_font2.render(f"{y:g}", True, (255,255,255))
-
-                text_rect = text.get_rect()
-                screen_x, screen_y = self.viewport.graph_to_screen(0, y)
-
-                text_rect.centery = screen_y
-                text_rect.right = screen_x - (ppu_x * minor_heightY * 1.1)
-
-                self.screen.blit(text, text_rect)
+                        if style2.labeled:
+                            screen_x, screen_y = self.viewport.graph_to_screen(0, y)
+                            self.draw_text_px(xRight=screen_x - (ppu_x * minor_heightY * 1.1), y = screen_y, txt=f"{y:g}", style=style2.label_style)
             
 
     
@@ -240,10 +244,10 @@ class Renderer:
         if style.visible:
             pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radius_px, style.border_width_px)
         if style.labeled:
-            if style.label_text_style is None:
-                style.label_text_style = self.default_PointTextStyle
-            font = pygame.font.SysFont(style.label_text_style.font_type, style.label_text_style.font_size, style.label_text_style.bold, style.label_text_style.italic)
-            text = font.render(f"({point.x:g}, {point.y:g})", True, (*style.label_text_style.color, style.label_text_style.opacity))
+            if style.label_style is None:
+                style.label_style = self.default_PointTextStyle
+            font = pygame.font.SysFont(style.label_style.font_type, style.label_style.font_size, style.label_style.bold, style.label_style.italic)
+            text = font.render(f"({point.x:g}, {point.y:g})", True, (*style.label_style.color, style.label_style.opacity))
             text_rect = text.get_rect()
             screen_y = y - style.radius_px
             text_rect.centerx = x

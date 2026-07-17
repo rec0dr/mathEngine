@@ -115,7 +115,9 @@ class GraphApp:
     def key_inputs(self, events):
         keys = pygame.key.get_pressed()
         multi = 1
-        if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+        if keys[pygame.K_LSHIFT]:
+            multi = 1/5
+        elif keys[pygame.K_RSHIFT]:
             multi = 5
         pan_ratio = 1 / 60
         zoom_ratio = 1 / 3
