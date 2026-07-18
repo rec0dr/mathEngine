@@ -101,7 +101,7 @@ class GraphApp:
         center=None,
         scale=None,
         duration=3,
-        ease_type=EaseType.SIN_SMOOTH
+        ease_type=EaseType.SIN_IN_OUT
     ):
         attrs = {}
 
@@ -192,7 +192,7 @@ class GraphApp:
                     current_fps = self.clock.get_fps()
                     print(current_fps)
                 elif event.key == pygame.K_r:
-                    self.animate_to((0,0),(10,10),duration=3, ease_type=EaseType.SIN_SMOOTH)
+                    self.animate_to((0,0),(10,10),duration=3, ease_type=EaseType.SIN_IN_OUT)
 
                         
     

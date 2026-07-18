@@ -1,9 +1,5 @@
 import math
-from enum import Enum
-
-class EaseType(Enum):
-    LINEAR = 0
-    SIN_SMOOTH = 1
+from .easing import *
 
 class Animation:
     def __init__(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None):
@@ -52,12 +48,7 @@ class Animation:
             self.finished = True
         
         a, b = self.start, self.end
-
-        if self.ease_type == EaseType.LINEAR:
-            value = self.linear(a, b, t)
-        elif self.ease_type == EaseType.SIN_SMOOTH:
-            value = self.sin_smooth(a, b, t)
-        else:
-            raise ValueError(f"Unknown easing type: {self.ease_type}")
+        t = EASING[self.ease_type](t)
+        value = interpolate(a, b, t)
         
         setattr(self.target, self.property_name, value)

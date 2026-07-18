@@ -283,7 +283,8 @@ class Renderer:
                 t += graphAccuracy
                 continue
             else:
-                self.draw_line(x1, y1, x2, y2, style)
+                if (y1 > self.boundD and y1 < self.boundU):
+                    self.draw_line(x1, y1, x2, y2, style)
                 x1, y1 = x2, y2
                 t += graphAccuracy
     
