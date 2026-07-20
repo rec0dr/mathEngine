@@ -9,6 +9,7 @@ class Operation(Enum):
     MULTIPLY = "*"
     DIVIDE = "/"
     POWER = "**"
+    ABS = "|"
 
 # Function combination logic
 
@@ -67,6 +68,9 @@ class Function(Curve):
     
     def __neg__(self):
         return Combination(Value(0), Operation.SUBTRACT, self)
+    
+    def __abs__(self):
+        return Combination(self, Operation.ABS, Value(0))
 
     def to_expression(self):
         return "y = " + str(self)
@@ -110,6 +114,8 @@ class Combination(Function):
             return a / b
         elif self.operation == Operation.POWER:
             return a ** b
+        elif self.operation == Operation.ABS:
+            return abs(a)
     
     def __str__(self):
         return f"({str(self.left)}) {self.operation.value} ({str(self.right)})"

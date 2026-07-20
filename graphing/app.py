@@ -5,11 +5,15 @@ from .viewport import Viewport
 from anim.animation import Animation, EaseType
 from .renderer import Renderer
 from styles.point_style import PointStyle
+from styles.curve_style import CurveStyle
+from styles.text_style import TextStyle
+from functions.curve import Curve
 from functions.function import Function
 from functions.parametric import Parametric
 from objects.point import Point
 from objects.animated_point import AnimatedPoint
 from objects.traced_point import TracedPoint
+from objects.label import Label
 from .graph_object import GraphObject
 
 
@@ -126,6 +130,23 @@ class GraphApp:
     
     def add_graphObject(self, obj: GraphObject):
         self.graphObjects.append(obj)
+    
+    def add_graphObjects(self, objectSet):
+        self.graphObjects.extend(objectSet)
+    
+    def add(self, obj, **style_kwargs):
+        if isinstance(obj, Point):
+            style = PointStyle(**style_kwargs)
+        elif isinstance(obj, Curve):
+            style = CurveStyle(**style_kwargs)
+        elif isinstance(obj, Label):
+            style = TextStyle(**style_kwargs)
+        else:
+            raise TypeError("Not implemented man, check back later :/")
+        
+        graph_object = GraphObject(obj, style)
+        self.add_graphObject(graph_object)
+        return graph_object
 
     def draw_graphObjects(self):
         for graph in self.graphObjects:

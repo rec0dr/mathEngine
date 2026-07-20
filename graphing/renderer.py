@@ -7,6 +7,7 @@ from functions.function import Function, Value
 from functions.parametric import Parametric
 from objects.point import Point
 from objects.line_segment import LineSegment
+from objects.label import Label
 from styles.style import Style
 from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
@@ -136,6 +137,9 @@ class Renderer:
         if style2 is None:
             style2 = self.default_MinorTickStyle
         
+        major_height_px = 32
+        minor_height_px = 8
+
         self.update_bounds()
         major_factorX = style.factor_x
         major_factorY = style.factor_y
@@ -143,8 +147,8 @@ class Renderer:
         major_distX = major_factorX**(math.floor(major_amtX)) * style.base_dist0x
         major_amtY = math.log(self.viewport.scale_y, major_factorY)
         major_distY = major_factorY**(math.floor(major_amtY)) * style.base_dist0y
-        major_heightX = major_distX/5
-        major_heightY = major_distY/5
+        major_heightX = major_height_px / self.viewport.ppu_x
+        major_heightY = major_height_px / self.viewport.ppu_x
 
         # For now, minor ticks are determined by same factor as major, possible custom later?
 
@@ -154,16 +158,13 @@ class Renderer:
         minor_distX = minor_factorX**(math.floor(minor_amtX)) * style2.base_dist0x
         minor_amtY = math.log(self.viewport.scale_y, minor_factorY)
         minor_distY = minor_factorY**(math.floor(minor_amtY)) * style2.base_dist0y
-        minor_heightX = minor_distX/5
-        minor_heightY = minor_distY/5
+        minor_heightX = minor_height_px / self.viewport.ppu_x
+        minor_heightY = minor_height_px / self.viewport.ppu_x
 
 
 
         ppu_x = self.viewport.ppu_x
         ppu_y = self.viewport.ppu_y
-
-        minor_visibilityX = (minor_amtX < math.floor(minor_amtX) + 1)
-        minor_visibilityY = (minor_amtY < math.floor(minor_amtY) + 1)
 
         fractionX = minor_amtX - math.floor(minor_amtX)
         alpha_minorX = int(128 * (1 - fractionX)) + 127
@@ -176,13 +177,14 @@ class Renderer:
         if style.visible or style2.visible:
             first = math.floor(self.boundL / minor_distX)
             last = math.ceil(self.boundR / minor_distX)
+            every = round(major_distX / minor_distX)
 
             for i in range(first, last + 1):
                 x = i * minor_distX
                 x = round(x, 10)
                 if i == 0:
                     continue
-                if x % major_distX <= 1e-6:
+                if i % every == 0:
                     if style.visible:
                         self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
 
@@ -190,7 +192,7 @@ class Renderer:
                             screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
                             self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", style=style.label_style)
                     
-                elif minor_visibilityX:
+                else:
                     if style2.visible:
                         self.draw_line(x, minor_heightX, x, -minor_heightX, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
 
@@ -200,15 +202,15 @@ class Renderer:
         
             first = math.floor(self.boundD / minor_distY)
             last = math.ceil(self.boundU / minor_distY)
+            every = round(major_distY / minor_distY)
 
             for i in range(first, last + 1):
                 y = i * minor_distY
-                y = round(y, 10)
 
                 if i == 0:
                     continue
 
-                if y % major_distY <= 1e-6:
+                if i % every == 0:
                     if style.visible:
                         self.draw_line(major_heightY, y, -major_heightY, y, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
 
@@ -216,7 +218,7 @@ class Renderer:
                             screen_x, screen_y = self.viewport.graph_to_screen(0, y)
                             self.draw_text_px(xRight=screen_x - (ppu_x * major_heightY * 1.1), y = screen_y, txt=f"{y:g}", style=style.label_style)
 
-                elif minor_visibilityY:
+                else:
                     if style2.visible:
                         self.draw_line(minor_heightY, y, -minor_heightY, y, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
 
@@ -234,6 +236,15 @@ class Renderer:
             self.draw_curve(func, style)
         elif isinstance(func, Point):
             self.draw_point(func, style)
+        elif isinstance(func, Label):
+            self.draw_label(func, style)
+    
+    def draw_label(self, label: Label, label_style: TextStyle = None):
+        if label_style is None:
+            label_style = self.default_PointTextStyle
+        
+        x_PX, y_PX = self.viewport.graph_to_screen(label.x, label.y)
+        self.draw_text_px(x_PX, y_PX, txt=label.text, style=label_style)
         
     def draw_point(self, point: Point, style: PointStyle = None):
         if style is None:
