@@ -5,6 +5,9 @@ class Label:
 
         self._auto_text = text is None
         self._text = f"({x}, {y})" if self._auto_text else text
+    
+    def update(self, dt):
+        pass
 
     @property
     def x(self):

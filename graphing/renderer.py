@@ -2,12 +2,19 @@ import pygame
 import math
 
 from .viewport import Viewport
+from .animation_manager import AnimationManager
+from .camera_controller import CameraController
+from .graph_manager import GraphManager
+from .graph_object import GraphObject
+
 from functions.curve import Curve
 from functions.function import Function, Value
 from functions.parametric import Parametric
+
 from objects.point import Point
 from objects.line_segment import LineSegment
 from objects.label import Label
+
 from styles.style import Style
 from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
@@ -15,12 +22,14 @@ from styles.axis_style import AxisStyle
 from styles.text_style import TextStyle
 from styles.tick_style import TickStyle
 from styles.axis_label import AxisLabel
-from .graph_object import GraphObject
 
 class Renderer:
-    def __init__(self, screen, viewport):
+    def __init__(self, screen: pygame.Surface, viewport: Viewport, graph_manager: GraphManager, animation_manager: AnimationManager, camera_controller: CameraController):
         self.screen = screen
         self.viewport = viewport
+        self.graph_manager = graph_manager
+        self.animation_manager = animation_manager
+        self.camera_controller = camera_controller
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
         self.overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
@@ -353,20 +362,20 @@ class Renderer:
                 dy = y1 - y2
 
                 self.draw_arrowhead(x1, y1, dx, dy, width, length, style)
-
-
-            
-
-
-            
-
     
-    def draw_overlay(self, app = None, style: TextStyle = None):
+    def draw_UI_line(self, lineNum, marginX, marginY, txt, style: TextStyle = None):
         if style is None:
             style = self.default_UITextStyle
-        firstY = self.viewport.ui_scale(20)
-        oneLine = style.font_size
-        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", style=style)
-        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY + oneLine, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", style=style)
-        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY + 2 * oneLine, txt=f"Move Speed: {app.slide_multi:g}", style=style)
+        one_line_height = style.font_size
+        x_left = marginX
+        y_center = marginY + (lineNum * one_line_height)
+        text = txt
+        self.draw_text_px(xLeft = x_left, y = y_center, txt = text, style = style)
+
+    def draw_UI(self, style: TextStyle = None):
+        x_margin = self.viewport.ui_scale(20)
+        y_margin = self.viewport.ui_scale(20)
+        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", style=style)
+        self.draw_UI_line(1, marginX = x_margin, marginY = y_margin, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", style=style)
+        self.draw_UI_line(2, marginX = x_margin, marginY = y_margin, txt=f"Move Speed: {self.camera_controller.speed:g}", style=style)
 
