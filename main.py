@@ -12,6 +12,6 @@ app.renderer.default_AxisStyle.arrow_dims = (20,10)
 func0 = Value(0)
 func1 = Value(2)
 
-app.add(Label(2, 3, "Hello World!"), color=(255,0,0), font_size=25, italic=True)
+app.add(SIN, show_arrows=True, arrow_dims = (50, 10), color = BLUE)
 
 app.run()

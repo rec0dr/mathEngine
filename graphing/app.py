@@ -38,6 +38,7 @@ class GraphApp:
         self.pan_sensitivity = pan_sensitivity
         self.zoom_sensitivity = zoom_sensitivity
         self.fps = fps
+        self.slide_multi = 1
 
         self.graphObjects = []
         self.animations = []
@@ -153,7 +154,7 @@ class GraphApp:
             self.renderer.draw_graph(graph)
     
     def draw_UI(self):
-        self.renderer.draw_overlay()
+        self.renderer.draw_overlay(self)
     
     def end_frame(self):
         self.screen.blit(self.renderer.overlay,(0,0))
@@ -164,28 +165,37 @@ class GraphApp:
             if event.type == pygame.QUIT:
                 self.running = False
     
-    def key_inputs(self, events):
+    def key_inputs(self, events, dt):
         keys = pygame.key.get_pressed()
-        multi = 1
         if keys[pygame.K_LSHIFT]:
-            multi = 1/5
+            self.slide_multi = 1/5
         elif keys[pygame.K_RSHIFT]:
-            multi = 5
+            self.slide_multi = 5
+        elif keys[pygame.K_MINUS]:
+            self.slide_multi -= 0.3 * dt
+        elif keys[pygame.K_EQUALS]:
+            self.slide_multi += 0.3 * dt
+        elif keys[pygame.K_1]:
+            self.slide_multi = 1
+        
+        if self.slide_multi < 0:
+            self.slide_multi = 0
+        
         pan_ratio = 1 / 60
         zoom_ratio = 1 / 3
         #WASD/Arrows for panning
         if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.renderer.viewport.pan_by(0, self.renderer.viewport.scale_y * pan_ratio * multi)
+            self.renderer.viewport.pan_by(0, self.renderer.viewport.scale_y * pan_ratio * self.slide_multi)
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.renderer.viewport.pan_by(0, -self.renderer.viewport.scale_y * pan_ratio * multi)
+            self.renderer.viewport.pan_by(0, -self.renderer.viewport.scale_y * pan_ratio * self.slide_multi)
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.renderer.viewport.pan_by(-self.renderer.viewport.scale_x * pan_ratio * multi, 0)
+            self.renderer.viewport.pan_by(-self.renderer.viewport.scale_x * pan_ratio * self.slide_multi, 0)
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.renderer.viewport.pan_by(self.renderer.viewport.scale_x * pan_ratio * multi, 0)
+            self.renderer.viewport.pan_by(self.renderer.viewport.scale_x * pan_ratio * self.slide_multi, 0)
 
         #Z/X for zooming in/out
         if keys[pygame.K_z]:
-            zoom_factor = BASE_ZOOM_FACTOR ** (zoom_ratio * multi)
+            zoom_factor = BASE_ZOOM_FACTOR ** (zoom_ratio * self.slide_multi)
             mx, my = pygame.mouse.get_pos()
 
             x1, y1 = self.viewport.screen_to_graph(mx, my)
@@ -194,7 +204,7 @@ class GraphApp:
 
             self.viewport.pan_by(x1 - x2, y1 - y2)
         if keys[pygame.K_x]:
-            zoom_factor = BASE_ZOOM_FACTOR ** (-zoom_ratio * multi)
+            zoom_factor = BASE_ZOOM_FACTOR ** (-zoom_ratio * self.slide_multi)
             mx, my = pygame.mouse.get_pos()
 
             x1, y1 = self.viewport.screen_to_graph(mx, my)
@@ -217,20 +227,20 @@ class GraphApp:
 
                         
     
-    def handle_inputs(self):
+    def handle_inputs(self, dt):
         events = pygame.event.get()
 
         self.check_quit(events)
         self.zoom_mouse(events)
         self.pan_mouse()
-        self.key_inputs(events)
+        self.key_inputs(events, dt)
         self.show_camera_status()
     
     def run(self):
         self.running = True
         while self.running:
             dt = self.clock.tick(self.fps) / 1000
-            self.handle_inputs()
+            self.handle_inputs(dt)
             
             self.begin_frame()
             self.move_animPoints(dt)

@@ -55,6 +55,14 @@ class Renderer:
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, int(style.thickness))
     
+    def rotate(self, vx, vy, angle):
+        c = math.cos(angle)
+        s = math.sin(angle)
+        return (
+            vx * c - vy * s,
+            vx * s + vy * c
+        )
+        
     def draw_line_px(self, x1, y1, x2, y2, style):
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), (x1, y1), (x2,y2), style.thickness)
@@ -63,7 +71,11 @@ class Renderer:
         if style is None:
             style = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15))
         if style.visible:
-            font = pygame.font.SysFont(style.font_type, style.font_size, style.bold, style.italic)
+            actual_font_size = style.font_size
+            if style.fixed_zoom:
+                actual_font_size = style.font_size / max(self.viewport.scale_x, self.viewport.scale_y) * style.base_scale
+            actual_font_size = int(actual_font_size)
+            font = pygame.font.SysFont(style.font_type, actual_font_size, style.bold, style.italic)
             text = font.render(txt, True, (*style.color, style.opacity))
 
             text_rect = text.get_rect()
@@ -129,7 +141,29 @@ class Renderer:
             x,y = self.viewport.graph_to_screen(0, self.boundD)
             self.draw_line_px(x-l,y-w,x,y,style)
             self.draw_line_px(x,y,x+l,y-w,style)
-        
+    
+    def draw_arrowhead(self, tip_x, tip_y, dx, dy, width, length, style):
+        mag = math.hypot(dx, dy)
+        if mag == 0:
+            return
+
+        dx /= mag
+        dy /= mag
+
+        px = -dy
+        py = dx
+
+        base_x = tip_x - length * dx
+        base_y = tip_y - length * dy
+
+        left_x = base_x + (width / 2) * px
+        left_y = base_y + (width / 2) * py
+
+        right_x = base_x - (width / 2) * px
+        right_y = base_y - (width / 2) * py
+
+        self.draw_line(tip_x, tip_y, left_x, left_y, style)
+        self.draw_line(tip_x, tip_y, right_x, right_y, style)
     
     def draw_ticks(self, style: TickStyle = None, style2: TickStyle = None):
         if style is None:
@@ -257,15 +291,8 @@ class Renderer:
         if style.labeled:
             if style.label_style is None:
                 style.label_style = self.default_PointTextStyle
-            style.label_style.font_size = int(style.label_style.font_size)
-            font = pygame.font.SysFont(style.label_style.font_type, style.label_style.font_size, style.label_style.bold, style.label_style.italic)
-            text = font.render(f"({point.x:g}, {point.y:g})", True, (*style.label_style.color, style.label_style.opacity))
-            text_rect = text.get_rect()
-            screen_y = y - style.radius_px
-            text_rect.centerx = x
-            text_rect.bottom = screen_y
-
-            self.screen.blit(text, text_rect)
+            
+            self.draw_text_px(x = x, yBot = y, txt = f"({point.x:g}, {point.y:g})", style = style.label_style)
 
     def draw_curve(self, curve: Curve, style: CurveStyle = None, graphAccuracy=None):
         if style is None:
@@ -277,9 +304,13 @@ class Renderer:
 
         t = min_parameter
         x1, y1 = curve.point(t)
+
+        first_visible = None
+        last_visible = None
+
         while t <= max_parameter:
             x2, y2 = curve.point(t + graphAccuracy)
-            
+
             if y1 is None or y2 is None:
                 x1, y1 = x2, y2
                 t += graphAccuracy
@@ -294,16 +325,48 @@ class Renderer:
                 t += graphAccuracy
                 continue
             else:
-                if (y1 > self.boundD and y1 < self.boundU):
-                    self.draw_line(x1, y1, x2, y2, style)
+                if first_visible is None:
+                    first_visible = ((x1, y1), (x2, y2))
+                
+                self.draw_line(x1, y1, x2, y2, style)
+                last_visible = ((x1, y1), (x2, y2))
                 x1, y1 = x2, y2
                 t += graphAccuracy
+        
+        if style.show_arrows:
+            width_px, length_px = style.arrow_dims
+            width = width_px / self.viewport.ppu_x
+            length = length_px / self.viewport.ppu_y
+
+            if last_visible is not None:
+
+                (x1, y1), (x2, y2) = last_visible
+                dx = x2 - x1
+                dy = y2 - y1
+
+                self.draw_arrowhead(x2, y2, dx, dy, width, length, style)
+
+            if first_visible is not None:
+
+                (x1, y1), (x2, y2) = first_visible
+                dx = x1 - x2
+                dy = y1 - y2
+
+                self.draw_arrowhead(x1, y1, dx, dy, width, length, style)
+
+
+            
+
+
+            
+
     
-    def draw_overlay(self, style: TextStyle = None):
+    def draw_overlay(self, app = None, style: TextStyle = None):
         if style is None:
             style = self.default_UITextStyle
         firstY = self.viewport.ui_scale(20)
         oneLine = style.font_size
         self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", style=style)
         self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY + oneLine, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", style=style)
+        self.draw_text_px(xLeft=self.viewport.ui_scale(20), y=firstY + 2 * oneLine, txt=f"Move Speed: {app.slide_multi:g}", style=style)
 
