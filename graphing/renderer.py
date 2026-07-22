@@ -18,6 +18,7 @@ from objects.label import Label
 from styles.style import Style
 from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
+from styles.line_segment_style import LineSegmentStyle
 from styles.axis_style import AxisStyle
 from styles.text_style import TextStyle
 from styles.tick_style import TickStyle
@@ -39,13 +40,18 @@ class Renderer:
 
         # Defaults
         self.default_BackgroundColor = (0,0,0)
+
         self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
         self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
+        self.default_LineSegmentStyle = LineSegmentStyle((255, 255, 255), 255, True, True, False, None)
+
         self.default_AxisLabelX = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
         self.default_AxisLabelY = AxisLabel("y", TextStyle((255,0,0), font_size=self.viewport.ui_scale(18)))
         self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
-        self.default_PointTextStyle = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15), italic=True)
+
+        self.default_PointTextStyle = TextStyle((0,0,255), font_size=self.viewport.ui_scale(15), italic=True)
         self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
+
         self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
         self.default_MinorTickStyle = TickStyle((255,255,255), 128, True, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
 
@@ -281,11 +287,36 @@ class Renderer:
             self.draw_point(func, style)
         elif isinstance(func, Label):
             self.draw_label(func, style)
+        elif isinstance(func, LineSegment):
+            self.draw_line_segment(func, style)
+
+    def draw_line_segment(self, line_segment: LineSegment, style: LineSegmentStyle = None):
+        if style is None:
+            style = self.default_LineSegmentStyle
+
+        self.draw_line(line_segment.x1, line_segment.y1, line_segment.x2, line_segment.y2, style=CurveStyle(style.color, style.opacity, style.visible, style.thickness))
+
+        if style.show_ends:
+            if style.endpoint_style is None:
+                style.endpoint_style = self.default_PointStyle
+            self.draw_point(Point((line_segment.x1, line_segment.y1)), style=style.endpoint_style)
+            self.draw_point(Point((line_segment.x2, line_segment.y2)), style=style.endpoint_style)
+
+        if style.label_ends:
+            if style.label_style is None:
+                style.label_style = self.default_PointTextStyle
+            pos1 = self.viewport.graph_to_screen(line_segment.x1, line_segment.y1)
+            pos2 = self.viewport.graph_to_screen(line_segment.x2, line_segment.y2)
+            self.draw_text_px(x=pos1[0], yBot=pos1[1], txt=f"({line_segment.x1:g}, {line_segment.y1:g})", style=style.label_style)
+            self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({line_segment.x2:g}, {line_segment.y2:g})", style=style.label_style)
+
+
+
     
     def draw_label(self, label: Label, label_style: TextStyle = None):
         if label_style is None:
             label_style = self.default_PointTextStyle
-        
+
         x_PX, y_PX = self.viewport.graph_to_screen(label.x, label.y)
         self.draw_text_px(x_PX, y_PX, txt=label.text, style=label_style)
         

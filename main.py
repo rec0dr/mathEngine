@@ -12,6 +12,7 @@ app.renderer.default_AxisStyle.arrow_dims = (20,10)
 func0 = SIN
 func1 = TAN
 
-animPoint = TracedPoint(SIN, 2)
-app.add_objects((SIN, {"color": RED, "show_arrows": True}), (TAN, {"color": BLUE, "show_arrows": True}))
+animConst = LineSegment((3,3), (5,-5))
+app.add_animations(Animation(animConst, "y1", -3, 5, EaseType.SIN_IN_OUT))
+app.add_object(animConst, show_ends=True, label_ends = True)
 app.run()

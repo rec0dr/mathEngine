@@ -13,6 +13,7 @@ from anim.animation import Animation, EaseType
 from styles.point_style import PointStyle
 from styles.curve_style import CurveStyle
 from styles.text_style import TextStyle
+from styles.line_segment_style import LineSegmentStyle
 
 from functions.curve import Curve
 from functions.function import Function
@@ -21,6 +22,7 @@ from functions.parametric import Parametric
 from objects.point import Point
 from objects.traced_point import TracedPoint
 from objects.label import Label
+from objects.line_segment import LineSegment
 
 
 BASE_SENSITIVITY_POWER = 1
@@ -77,6 +79,8 @@ class GraphApp:
             style = PointStyle(**style_kwargs)
         elif isinstance(drawable, Label):
             style = TextStyle(**style_kwargs)
+        elif isinstance(drawable, LineSegment):
+            style = LineSegmentStyle(**style_kwargs)
         else:
             raise TypeError
 
