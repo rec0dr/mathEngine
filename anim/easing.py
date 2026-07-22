@@ -16,10 +16,13 @@ class EaseType(Enum):
     SIN_IN_OUT = auto()
     QUADRATIC_IN = auto()
     QUADRATIC_OUT = auto()
+    QUADRATIC_IN_OUT = auto()
     CUBIC_IN = auto()
     CUBIC_OUT = auto()
+    CUBIC_IN_OUT = auto()
     QUARTIC_IN = auto()
     QUARTIC_OUT = auto()
+    QUARTIC_IN_OUT = auto()
 
 def linear(t):
     return t
@@ -41,11 +44,20 @@ def n_deg_in(n, t):
 def n_deg_out(n, t):
     return 1 - ((1-t)**n)
 
+def n_deg_in_out(n, t):
+    if t < 0.5:
+        return (2 ** (n - 1)) * (t ** n)
+    else:
+        return 1 - ((-2 * t + 2) ** n) / 2
+
 def quadratic_in(t):
     return t * t
 
 def quadratic_out(t):
     return 1 - (1-t)**2
+
+def quadratic_in_out(t):
+    return n_deg_in_out(2, t)
 
 def cubic_in(t):
     return n_deg_in(3, t)
@@ -53,11 +65,17 @@ def cubic_in(t):
 def cubic_out(t):
     return n_deg_out(3, t)
 
+def cubic_in_out(t):
+    return n_deg_in_out(3, t)
+
 def quartic_in(t):
     return n_deg_in(4, t)
 
 def quartic_out(t):
     return n_deg_out(4, t)
+
+def quartic_in_out(t):
+    return n_deg_in_out(4, t)
 
 EASING = {
     EaseType.LINEAR: linear,
@@ -66,8 +84,11 @@ EASING = {
     EaseType.SIN_IN_OUT: sin_in_out,
     EaseType.QUADRATIC_IN: quadratic_in,
     EaseType.QUADRATIC_OUT: quadratic_out,
+    EaseType.QUADRATIC_IN_OUT: quadratic_in_out,
     EaseType.CUBIC_IN: cubic_in,
     EaseType.CUBIC_OUT: cubic_out,
+    EaseType.CUBIC_IN_OUT: cubic_in_out,
     EaseType.QUARTIC_IN: quartic_in,
     EaseType.QUARTIC_OUT: quartic_out,
+    EaseType.QUARTIC_IN_OUT: quartic_in_out,
 }

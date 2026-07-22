@@ -6,6 +6,7 @@ from .animation_manager import AnimationManager
 from .camera_controller import CameraController
 from .graph_manager import GraphManager
 from .graph_object import GraphObject
+from .registries import DRAW_MAP
 
 from functions.curve import Curve
 from functions.function import Function, Value
@@ -82,16 +83,16 @@ class Renderer:
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), (x1, y1), (x2,y2), style.thickness)
     
-    def draw_text_px(self, x=None, y=None, txt="", style: TextStyle = None, xLeft=None, xRight=None, yBot=None, yTop=None):
-        if style is None:
-            style = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15))
-        if style.visible:
-            actual_font_size = style.font_size
-            if style.fixed_zoom:
-                actual_font_size = style.font_size / max(self.viewport.scale_x, self.viewport.scale_y) * style.base_scale
+    def draw_text_px(self, x=None, y=None, txt="", text_style: TextStyle = None, xLeft=None, xRight=None, yBot=None, yTop=None):
+        if text_style is None:
+            text_style = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15))
+        if text_style.visible:
+            actual_font_size = text_style.font_size
+            if text_style.fixed_zoom:
+                actual_font_size = text_style.font_size / max(self.viewport.scale_x, self.viewport.scale_y) * text_style.base_scale
             actual_font_size = int(actual_font_size)
-            font = pygame.font.SysFont(style.font_type, actual_font_size, style.bold, style.italic)
-            text = font.render(txt, True, (*style.color, style.opacity))
+            font = pygame.font.SysFont(text_style.font_type, actual_font_size, text_style.bold, text_style.italic)
+            text = font.render(txt, True, (*text_style.color, text_style.opacity))
 
             text_rect = text.get_rect()
             if xLeft is not None:
@@ -111,51 +112,51 @@ class Renderer:
 
 
     
-    def draw_axes(self, style: AxisStyle = None):
-        if style is None:
-            style = self.default_AxisStyle
+    def draw_axes(self, axis_style: AxisStyle = None):
+        if axis_style is None:
+            axis_style = self.default_AxisStyle
         self.update_bounds()
 
         offset_l, offset_w = self.viewport.ui_scale(30), self.viewport.ui_scale(10)
 
-        if style.draw_x:
-            self.draw_line(self.boundL, 0, self.boundR, 0, style)
-            if style.label_x.text != "":
+        if axis_style.draw_x:
+            self.draw_line(self.boundL, 0, self.boundR, 0, axis_style)
+            if axis_style.label_x.text != "":
                 x,y = self.viewport.graph_to_screen(self.boundR, 0)
-                self.draw_text_px(x-offset_w, y+offset_l, style.label_x.text, style.label_x.style)
-                if style.label_negatives:
+                self.draw_text_px(x-offset_w, y+offset_l, axis_style.label_x.text, axis_style.label_x.style)
+                if axis_style.label_negatives:
                     x,y = self.viewport.graph_to_screen(self.boundL, 0)
-                    self.draw_text_px(x+offset_w, y+offset_l, style.label_x.text, style.label_x.style)
+                    self.draw_text_px(x+offset_w, y+offset_l, axis_style.label_x.text, axis_style.label_x.style)
 
-        if style.draw_y:
-            self.draw_line(0, self.boundD, 0, self.boundU, style)
-            if style.label_y.text != "":
+        if axis_style.draw_y:
+            self.draw_line(0, self.boundD, 0, self.boundU, axis_style)
+            if axis_style.label_y.text != "":
                 x,y = self.viewport.graph_to_screen(0, self.boundU)
-                self.draw_text_px(x+offset_l, y+offset_w, style.label_y.text, style.label_y.style)
-                if style.label_negatives:
+                self.draw_text_px(x+offset_l, y+offset_w, axis_style.label_y.text, axis_style.label_y.style)
+                if axis_style.label_negatives:
                     x,y = self.viewport.graph_to_screen(0, self.boundD)
-                    self.draw_text_px(x+offset_l, y-offset_w, style.label_y.text, style.label_y.style)
+                    self.draw_text_px(x+offset_l, y-offset_w, axis_style.label_y.text, axis_style.label_y.style)
         
-        if style.show_origin:
-            pygame.draw.circle(self.overlay, (255,255,255,255), (self.viewport.graph_to_screen(0,0)), style.origin_radius)
+        if axis_style.show_origin:
+            pygame.draw.circle(self.overlay, (255,255,255,255), (self.viewport.graph_to_screen(0,0)), axis_style.origin_radius)
         
-        if style.show_arrows:
+        if axis_style.show_arrows:
             x,y = self.viewport.graph_to_screen(self.boundR, 0)
-            l,w = style.arrow_dims
-            self.draw_line_px(x-w,y-l,x,y,style)
-            self.draw_line_px(x,y,x-w,y+l,style)
+            l,w = axis_style.arrow_dims
+            self.draw_line_px(x-w,y-l,x,y,axis_style)
+            self.draw_line_px(x,y,x-w,y+l,axis_style)
 
             x,y = self.viewport.graph_to_screen(self.boundL, 0)
-            self.draw_line_px(x+w,y-l,x,y,style)
-            self.draw_line_px(x,y,x+w,y+l,style)
+            self.draw_line_px(x+w,y-l,x,y,axis_style)
+            self.draw_line_px(x,y,x+w,y+l,axis_style)
 
             x,y = self.viewport.graph_to_screen(0, self.boundU)
-            self.draw_line_px(x-l,y+w,x,y,style)
-            self.draw_line_px(x,y,x+l,y+w,style)
+            self.draw_line_px(x-l,y+w,x,y,axis_style)
+            self.draw_line_px(x,y,x+l,y+w,axis_style)
 
             x,y = self.viewport.graph_to_screen(0, self.boundD)
-            self.draw_line_px(x-l,y-w,x,y,style)
-            self.draw_line_px(x,y,x+l,y-w,style)
+            self.draw_line_px(x-l,y-w,x,y,axis_style)
+            self.draw_line_px(x,y,x+l,y-w,axis_style)
     
     def draw_arrowhead(self, tip_x, tip_y, dx, dy, width, length, style):
         mag = math.hypot(dx, dy)
@@ -180,33 +181,33 @@ class Renderer:
         self.draw_line(tip_x, tip_y, left_x, left_y, style)
         self.draw_line(tip_x, tip_y, right_x, right_y, style)
     
-    def draw_ticks(self, style: TickStyle = None, style2: TickStyle = None):
-        if style is None:
-            style = self.default_MajorTickStyle
-        if style2 is None:
-            style2 = self.default_MinorTickStyle
+    def draw_ticks(self, tick_style: TickStyle = None, tick_style2: TickStyle = None):
+        if tick_style is None:
+            tick_style = self.default_MajorTickStyle
+        if tick_style2 is None:
+            tick_style2 = self.default_MinorTickStyle
         
         major_height_px = 32
         minor_height_px = 8
 
         self.update_bounds()
-        major_factorX = style.factor_x
-        major_factorY = style.factor_y
+        major_factorX = tick_style.factor_x
+        major_factorY = tick_style.factor_y
         major_amtX = math.log(self.viewport.scale_x, major_factorX)
-        major_distX = major_factorX**(math.floor(major_amtX)) * style.base_dist0x
+        major_distX = major_factorX**(math.floor(major_amtX)) * tick_style.base_dist0x
         major_amtY = math.log(self.viewport.scale_y, major_factorY)
-        major_distY = major_factorY**(math.floor(major_amtY)) * style.base_dist0y
+        major_distY = major_factorY**(math.floor(major_amtY)) * tick_style.base_dist0y
         major_heightX = major_height_px / self.viewport.ppu_x
         major_heightY = major_height_px / self.viewport.ppu_x
 
         # For now, minor ticks are determined by same factor as major, possible custom later?
 
-        minor_factorX = style.factor_x
-        minor_factorY = style.factor_y
+        minor_factorX = tick_style.factor_x
+        minor_factorY = tick_style.factor_y
         minor_amtX = math.log(self.viewport.scale_x, minor_factorX)
-        minor_distX = minor_factorX**(math.floor(minor_amtX)) * style2.base_dist0x
+        minor_distX = minor_factorX**(math.floor(minor_amtX)) * tick_style2.base_dist0x
         minor_amtY = math.log(self.viewport.scale_y, minor_factorY)
-        minor_distY = minor_factorY**(math.floor(minor_amtY)) * style2.base_dist0y
+        minor_distY = minor_factorY**(math.floor(minor_amtY)) * tick_style2.base_dist0y
         minor_heightX = minor_height_px / self.viewport.ppu_x
         minor_heightY = minor_height_px / self.viewport.ppu_x
 
@@ -223,7 +224,7 @@ class Renderer:
         alpha_minorY = int(128 * (1 - fractionY)) + 127
         alpha_majorY = 255 - alpha_minorY + 127
 
-        if style.visible or style2.visible:
+        if tick_style.visible or tick_style2.visible:
             first = math.floor(self.boundL / minor_distX)
             last = math.ceil(self.boundR / minor_distX)
             every = round(major_distX / minor_distX)
@@ -234,20 +235,20 @@ class Renderer:
                 if i == 0:
                     continue
                 if i % every == 0:
-                    if style.visible:
-                        self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
+                    if tick_style.visible:
+                        self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(tick_style.color),opacity=tick_style.opacity, thickness=tick_style.thickness))
 
-                        if style.labeled:
+                        if tick_style.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
-                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", style=style.label_style)
+                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", text_style=tick_style.label_style)
                     
                 else:
-                    if style2.visible:
-                        self.draw_line(x, minor_heightX, x, -minor_heightX, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
+                    if tick_style2.visible:
+                        self.draw_line(x, minor_heightX, x, -minor_heightX, CurveStyle(color=(tick_style2.color),opacity=tick_style2.opacity, thickness=tick_style2.thickness))
 
-                        if style2.labeled:
+                        if tick_style2.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
-                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * minor_heightX * 1.1), txt=f"{x:g}", style=style2.label_style)
+                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * minor_heightX * 1.1), txt=f"{x:g}", text_style=tick_style2.label_style)
         
             first = math.floor(self.boundD / minor_distY)
             last = math.ceil(self.boundU / minor_distY)
@@ -260,55 +261,51 @@ class Renderer:
                     continue
 
                 if i % every == 0:
-                    if style.visible:
-                        self.draw_line(major_heightY, y, -major_heightY, y, CurveStyle(color=(style.color),opacity=style.opacity, thickness=style.thickness))
+                    if tick_style.visible:
+                        self.draw_line(major_heightY, y, -major_heightY, y, CurveStyle(color=(tick_style.color),opacity=tick_style.opacity, thickness=tick_style.thickness))
 
-                        if style.labeled:
+                        if tick_style.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(0, y)
-                            self.draw_text_px(xRight=screen_x - (ppu_x * major_heightY * 1.1), y = screen_y, txt=f"{y:g}", style=style.label_style)
+                            self.draw_text_px(xRight=screen_x - (ppu_x * major_heightY * 1.1), y = screen_y, txt=f"{y:g}", text_style=tick_style.label_style)
 
                 else:
-                    if style2.visible:
-                        self.draw_line(minor_heightY, y, -minor_heightY, y, CurveStyle(color=(style2.color),opacity=style2.opacity, thickness=style2.thickness))
+                    if tick_style2.visible:
+                        self.draw_line(minor_heightY, y, -minor_heightY, y, CurveStyle(color=(tick_style2.color),opacity=tick_style2.opacity, thickness=tick_style2.thickness))
 
-                        if style2.labeled:
+                        if tick_style2.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(0, y)
-                            self.draw_text_px(xRight=screen_x - (ppu_x * minor_heightY * 1.1), y = screen_y, txt=f"{y:g}", style=style2.label_style)
+                            self.draw_text_px(xRight=screen_x - (ppu_x * minor_heightY * 1.1), y = screen_y, txt=f"{y:g}", text_style=tick_style2.label_style)
             
 
     
-    def draw_graph(self, graph: GraphObject, graphAccuracy=None):
-        func = graph.drawable
-        style = graph.style
+    def draw_graph(self, obj: GraphObject):
+        func = obj.drawable
+        style = obj.style
+        
 
-        if isinstance(func, Curve):
-            self.draw_curve(func, style)
-        elif isinstance(func, Point):
-            self.draw_point(func, style)
-        elif isinstance(func, Label):
-            self.draw_label(func, style)
-        elif isinstance(func, LineSegment):
-            self.draw_line_segment(func, style)
+        drawer_name = DRAW_MAP[type(func)]
+        drawer = getattr(self, drawer_name)
+        drawer(func, style)
 
-    def draw_line_segment(self, line_segment: LineSegment, style: LineSegmentStyle = None):
-        if style is None:
-            style = self.default_LineSegmentStyle
+    def draw_line_segment(self, line_segment: LineSegment, line_segment_style: LineSegmentStyle = None):
+        if line_segment_style is None:
+            line_segment_style = self.default_LineSegmentStyle
 
-        self.draw_line(line_segment.x1, line_segment.y1, line_segment.x2, line_segment.y2, style=CurveStyle(style.color, style.opacity, style.visible, style.thickness))
+        self.draw_line(line_segment.x1, line_segment.y1, line_segment.x2, line_segment.y2, style=CurveStyle(line_segment_style.color, line_segment_style.opacity, line_segment_style.visible, line_segment_style.thickness))
 
-        if style.show_ends:
-            if style.endpoint_style is None:
-                style.endpoint_style = self.default_PointStyle
-            self.draw_point(Point((line_segment.x1, line_segment.y1)), style=style.endpoint_style)
-            self.draw_point(Point((line_segment.x2, line_segment.y2)), style=style.endpoint_style)
+        if line_segment_style.show_ends:
+            if line_segment_style.endpoint_style is None:
+                line_segment_style.endpoint_style = self.default_PointStyle
+            self.draw_point(Point((line_segment.x1, line_segment.y1)), point_style=line_segment_style.endpoint_style)
+            self.draw_point(Point((line_segment.x2, line_segment.y2)), point_style=line_segment_style.endpoint_style)
 
-        if style.label_ends:
-            if style.label_style is None:
-                style.label_style = self.default_PointTextStyle
+        if line_segment_style.label_ends:
+            if line_segment_style.label_style is None:
+                line_segment_style.label_style = self.default_PointTextStyle
             pos1 = self.viewport.graph_to_screen(line_segment.x1, line_segment.y1)
             pos2 = self.viewport.graph_to_screen(line_segment.x2, line_segment.y2)
-            self.draw_text_px(x=pos1[0], yBot=pos1[1], txt=f"({line_segment.x1:g}, {line_segment.y1:g})", style=style.label_style)
-            self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({line_segment.x2:g}, {line_segment.y2:g})", style=style.label_style)
+            self.draw_text_px(x=pos1[0], yBot=pos1[1], txt=f"({line_segment.x1:g}, {line_segment.y1:g})", text_style=line_segment_style.label_style)
+            self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({line_segment.x2:g}, {line_segment.y2:g})", text_style=line_segment_style.label_style)
 
 
 
@@ -318,25 +315,25 @@ class Renderer:
             label_style = self.default_PointTextStyle
 
         x_PX, y_PX = self.viewport.graph_to_screen(label.x, label.y)
-        self.draw_text_px(x_PX, y_PX, txt=label.text, style=label_style)
+        self.draw_text_px(x_PX, y_PX, txt=label.text, text_style=label_style)
         
-    def draw_point(self, point: Point, style: PointStyle = None):
-        if style is None:
-            style = self.default_PointStyle
+    def draw_point(self, point: Point, point_style: PointStyle = None):
+        if point_style is None:
+            point_style = self.default_PointStyle
         x, y = self.viewport.graph_to_screen(point.x, point.y)
-        if style.is_solid:
-            style.border_width_px = 0
-        if style.visible:
-            pygame.draw.circle(self.overlay, (*style.color, style.opacity), (x, y), style.radius_px, style.border_width_px)
-        if style.labeled:
-            if style.label_style is None:
-                style.label_style = self.default_PointTextStyle
+        if point_style.is_solid:
+            point_style.border_width_px = 0
+        if point_style.visible:
+            pygame.draw.circle(self.overlay, (*point_style.color, point_style.opacity), (x, y), point_style.radius_px, point_style.border_width_px)
+        if point_style.labeled:
+            if point_style.label_style is None:
+                point_style.label_style = self.default_PointTextStyle
             
-            self.draw_text_px(x = x, yBot = y, txt = f"({point.x:g}, {point.y:g})", style = style.label_style)
+            self.draw_text_px(x = x, yBot = y, txt = f"({point.x:g}, {point.y:g})", text_style = point_style.label_style)
 
-    def draw_curve(self, curve: Curve, style: CurveStyle = None, graphAccuracy=None):
-        if style is None:
-            style = self.default_CurveStyle
+    def draw_curve(self, curve: Curve, curve_style: CurveStyle = None, graphAccuracy=None):
+        if curve_style is None:
+            curve_style = self.default_CurveStyle
         self.update_bounds()
         if graphAccuracy is None:
             min_parameter, max_parameter = curve.parameter_interval(self)
@@ -368,13 +365,13 @@ class Renderer:
                 if first_visible is None:
                     first_visible = ((x1, y1), (x2, y2))
                 
-                self.draw_line(x1, y1, x2, y2, style)
+                self.draw_line(x1, y1, x2, y2, curve_style)
                 last_visible = ((x1, y1), (x2, y2))
                 x1, y1 = x2, y2
                 t += graphAccuracy
         
-        if style.show_arrows:
-            width_px, length_px = style.arrow_dims
+        if curve_style.show_arrows:
+            width_px, length_px = curve_style.arrow_dims
             width = width_px / self.viewport.ppu_x
             length = length_px / self.viewport.ppu_y
 
@@ -384,7 +381,7 @@ class Renderer:
                 dx = x2 - x1
                 dy = y2 - y1
 
-                self.draw_arrowhead(x2, y2, dx, dy, width, length, style)
+                self.draw_arrowhead(x2, y2, dx, dy, width, length, curve_style)
 
             if first_visible is not None:
 
@@ -392,21 +389,21 @@ class Renderer:
                 dx = x1 - x2
                 dy = y1 - y2
 
-                self.draw_arrowhead(x1, y1, dx, dy, width, length, style)
+                self.draw_arrowhead(x1, y1, dx, dy, width, length, curve_style)
     
-    def draw_UI_line(self, lineNum, marginX, marginY, txt, style: TextStyle = None):
-        if style is None:
-            style = self.default_UITextStyle
-        one_line_height = style.font_size
+    def draw_UI_line(self, lineNum, marginX, marginY, txt, text_style: TextStyle = None):
+        if text_style is None:
+            text_style = self.default_UITextStyle
+        one_line_height = text_style.font_size
         x_left = marginX
         y_center = marginY + (lineNum * one_line_height)
         text = txt
-        self.draw_text_px(xLeft = x_left, y = y_center, txt = text, style = style)
+        self.draw_text_px(xLeft = x_left, y = y_center, txt = text, text_style = text_style)
 
-    def draw_UI(self, style: TextStyle = None):
+    def draw_UI(self, text_style: TextStyle = None):
         x_margin = self.viewport.ui_scale(20)
         y_margin = self.viewport.ui_scale(20)
-        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", style=style)
-        self.draw_UI_line(1, marginX = x_margin, marginY = y_margin, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", style=style)
-        self.draw_UI_line(2, marginX = x_margin, marginY = y_margin, txt=f"Move Speed: {self.camera_controller.speed:g}", style=style)
+        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", text_style=text_style)
+        self.draw_UI_line(1, marginX = x_margin, marginY = y_margin, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", text_style=text_style)
+        self.draw_UI_line(2, marginX = x_margin, marginY = y_margin, txt=f"Move Speed: {self.camera_controller.speed:g}", text_style=text_style)
 
