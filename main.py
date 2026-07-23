@@ -12,7 +12,8 @@ app.renderer.default_AxisStyle.arrow_dims = (20,10)
 func0 = SIN
 func1 = TAN
 
-animConst = LineSegment((3,3), (5,-5))
-app.add_animations(Animation(animConst, "pos1", (1, -3), 5, EaseType.SIN_IN_OUT), Animation(animConst, "pos2", (7, 5), 5, EaseType.SIN_IN_OUT))
-app.add_object(animConst, color=BLUE, label_ends=True)
+val = Value(0)
+animConst = Sinusoid(1, X-val, 0, TrigType.SIN)
+app.add_animations(Animation(val, "value", 1, 5, EaseType.SIN_IN_OUT))
+app.add_object(animConst, color=BLUE)
 app.run()

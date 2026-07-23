@@ -283,7 +283,13 @@ class Renderer:
         style = obj.style
         
 
-        drawer_name = DRAW_MAP[type(func)]
+        for cls in type(func).__mro__:
+            if cls in DRAW_MAP:
+                drawer_name = DRAW_MAP[cls]
+                break
+        else:
+            raise TypeError(f"No drawer registered for {type(func).__name__}")
+        
         drawer = getattr(self, drawer_name)
         drawer(func, style)
 
