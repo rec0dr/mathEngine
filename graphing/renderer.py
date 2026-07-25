@@ -231,9 +231,10 @@ class Renderer:
 
             for i in range(first, last + 1):
                 x = i * minor_distX
-                x = round(x, 10)
+                
                 if i == 0:
                     continue
+
                 if i % every == 0:
                     if tick_style.visible:
                         self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(tick_style.color),opacity=tick_style.opacity, thickness=tick_style.thickness))
@@ -297,21 +298,24 @@ class Renderer:
         if line_segment_style is None:
             line_segment_style = self.default_LineSegmentStyle
 
-        self.draw_line(line_segment.x1, line_segment.y1, line_segment.x2, line_segment.y2, style=CurveStyle(line_segment_style.color, line_segment_style.opacity, line_segment_style.visible, line_segment_style.thickness))
+        x1, y1 = line_segment.pos1
+        x2, y2 = line_segment.pos2
+
+        self.draw_line(x1, y1, x2, y2, style=CurveStyle(line_segment_style.color, line_segment_style.opacity, line_segment_style.visible, line_segment_style.thickness))
 
         if line_segment_style.show_ends:
             if line_segment_style.endpoint_style is None:
                 line_segment_style.endpoint_style = self.default_PointStyle
-            self.draw_point(Point((line_segment.x1, line_segment.y1)), point_style=line_segment_style.endpoint_style)
-            self.draw_point(Point((line_segment.x2, line_segment.y2)), point_style=line_segment_style.endpoint_style)
+            self.draw_point(Point((x1, y1)), point_style=line_segment_style.endpoint_style)
+            self.draw_point(Point((x2, y2)), point_style=line_segment_style.endpoint_style)
 
         if line_segment_style.label_ends:
             if line_segment_style.label_style is None:
                 line_segment_style.label_style = self.default_PointTextStyle
-            pos1 = self.viewport.graph_to_screen(line_segment.x1, line_segment.y1)
-            pos2 = self.viewport.graph_to_screen(line_segment.x2, line_segment.y2)
-            self.draw_text_px(x=pos1[0], yBot=pos1[1], txt=f"({line_segment.x1:g}, {line_segment.y1:g})", text_style=line_segment_style.label_style)
-            self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({line_segment.x2:g}, {line_segment.y2:g})", text_style=line_segment_style.label_style)
+            pos1 = self.viewport.graph_to_screen(x1, y1)
+            pos2 = self.viewport.graph_to_screen(x2, y2)
+            self.draw_text_px(x=pos1[0], yBot=pos1[1], txt=f"({x1:g}, {y1:g})", text_style=line_segment_style.label_style)
+            self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({x2:g}, {y2:g})", text_style=line_segment_style.label_style)
 
 
 
@@ -335,7 +339,7 @@ class Renderer:
             if point_style.label_style is None:
                 point_style.label_style = self.default_PointTextStyle
             
-            self.draw_text_px(x = x, yBot = y, txt = f"({point.x:g}, {point.y:g})", text_style = point_style.label_style)
+            self.draw_text_px(x = x, yBot = y - point_style.radius_px, txt = f"({point.x:g}, {point.y:g})", text_style = point_style.label_style)
 
     def draw_curve(self, curve: Curve, curve_style: CurveStyle = None, graphAccuracy=None):
         if curve_style is None:

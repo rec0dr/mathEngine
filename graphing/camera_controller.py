@@ -63,6 +63,8 @@ class CameraController:
     def handle_zooming_keys(self):
         keys = pygame.key.get_pressed()
         pos = pygame.mouse.get_pos()
+        if keys[pygame.K_LSHIFT]:
+            pos = self.viewport.graph_to_screen(0,0)
         if keys[pygame.K_z]:
             self.zoom_to(*pos, BASE_ZOOM_FACTOR ** (ZOOM_KEY_SPEED * self.speed))
         if keys[pygame.K_x]:
@@ -98,19 +100,20 @@ class CameraController:
                     self.animate_to((x,y), None, duration=5, ease_type = EaseType.CUBIC_IN_OUT)
     
     def handle_speed_change(self, events):
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_PERIOD:
-                    self.speed += 0.25
-                elif event.key == pygame.K_COMMA:
-                    self.speed -= 0.25
-                elif event.key == pygame.K_SLASH:
-                    self.speed = 1
-                elif event.key == pygame.K_0:
-                    self.speed = float(input("Move Speed: "))
-                
-                if self.speed < 0:
-                    self.speed = 0
+        keys = pygame.key.get_pressed()
+        inc = 0.01
+        if keys[pygame.K_RSHIFT]:
+            inc = 0.05
+        if keys[pygame.K_PERIOD]:
+            self.speed += inc
+        elif keys[pygame.K_COMMA]:
+            self.speed -= inc
+
+        elif keys[pygame.K_SLASH]:
+            self.speed = 1
+
+        if self.speed < 0:
+            self.speed = 0
     
     def update(self, events):
         self.handle_panning_keys()

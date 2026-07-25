@@ -124,12 +124,23 @@ class Value(Function):
     def __init__(self, value):
         super().__init__()
         self.value = value
-    
+
     def __str__(self):
-        return f"{self.value}"
-    
+        if callable(self.value):
+            return "<dynamic>"
+        return str(self.value)
+
     def evaluate(self, x):
+        if callable(self.value):
+            return self.value()
+        if isinstance(self.value, Function):
+            return self.value.evaluate(x)
         return self.value
+
+def dynamic(value):
+    if callable(value):
+        return Value(value)
+    return Value(lambda: value)
 
 class Variable(Function):
     def __init__(self, name):

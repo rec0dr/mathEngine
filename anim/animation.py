@@ -2,7 +2,7 @@ import math
 from .easing import *
 
 class Animation:
-    def __init__(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None):
+    def __init__(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None, loop=False, two_way = False):
         self.target = target
         
         parts = property_name.split(".")
@@ -21,6 +21,8 @@ class Animation:
 
         self.elapsed = 0
         self.finished = False
+        self.loop = loop
+        self.two_way = two_way
     
     @classmethod
     def multiple(cls, target, duration=1, ease_type=EaseType.LINEAR, **attrs):
@@ -44,11 +46,22 @@ class Animation:
         self.elapsed += dt
         
         t = min(self.elapsed / self.duration, 1)
+        
         if t == 1:
-            self.finished = True
+            if self.loop:
+                self.elapsed = 0
+            else:
+                self.finished = True
+
+        real_t = t
+        if self.two_way:
+            if t < 0.5:
+                real_t = 2*t
+            else:
+                real_t = 2*(1 - t)
         
         a, b = self.start, self.end
-        t = EASING[self.ease_type](t)
-        value = interpolate(a, b, t)
+        real_t = EASING[self.ease_type](real_t)
+        value = interpolate(a, b, real_t)
         
         setattr(self.target, self.property_name, value)

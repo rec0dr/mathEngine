@@ -1,5 +1,5 @@
 from .curve import Curve
-from .function import Function, Value
+from .function import Function, Value, dynamic
 from .exponential import Exponential
 from .linear import Linear
 from .logarithm import Logarithm

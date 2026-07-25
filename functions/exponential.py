@@ -6,39 +6,18 @@ X = Variable("x")
 
 class Exponential(Function):
     
-    def __init__(self, base, vs, arg, vt, eqString=None):
+    def __init__(self, base, arg, eqString=None):
         super().__init__()
-        self._data = [base, vs, arg, vt]
         self._custom_eqString = eqString
         
-        self.base, self.vs, self.arg, self.vt = self._data
-        
-    @classmethod
-    def from_basic(cls, base, vs=1, vt=0, eqString=None):
-        return cls(base, vs, X, vt, eqString)
+        self.base, self.arg = base, arg
     
     def __str__(self):
         if self._custom_eqString is not None:
             return self._custom_eqString
         
-        res = ""
-        if self.vs == 0:
-            return f"{self.vt}"
-        elif self.vs == 1:
-            res = res + f"({self.base})^"
-        elif self.vs == -1:
-            res = res + f"-({self.base})^"
-        else:
-            res = res + f"{self.vs}({self.base})^"
-        
-        res = res + f"({str(self.arg)})"
-        
-        if self.vt != 0:
-            if self.vt > 0:
-                res = res + f" + {self.vt}"
-            else:
-                res = res + f" - {self.vt}"
+        res = f"({self.base}) ^ ({self.arg})"
         return res
     
     def evaluate(self, x):
-        return (self.vs * (self.base**self.arg.evaluate(x)) + self.vt)
+        return (self.base ** self.arg.evaluate(x))
