@@ -1,10 +1,37 @@
 from functions.function import Function, Value
+from .point import Point
 
 class LineSegment:
     def __init__(self, pos1, pos2):
+        if isinstance(pos1, Point):
+            p = pos1
+            pos1 = (
+                Value(lambda p=p: p.x),
+                Value(lambda p=p: p.y)
+            )
+
+        if isinstance(pos2, Point):
+            p = pos2
+            pos2 = (
+                Value(lambda p=p: p.x),
+                Value(lambda p=p: p.y)
+            )
+
         self.x1, self.y1 = pos1
         self.x2, self.y2 = pos2
 
+    @classmethod
+    def from_path(cls, path):
+        if len(path) < 2:
+            raise ValueError("Path must contain at least two points to create a line segment.")
+
+        lineset = []
+        previous_point = None
+        for point in path:
+            if previous_point is not None:
+                lineset.append(cls(previous_point, point))
+            previous_point = point
+        return lineset
     def evaluate_point(self, point):
         x, y = point
 

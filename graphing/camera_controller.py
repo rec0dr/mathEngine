@@ -1,5 +1,7 @@
 import math
 import pygame
+
+from objects.point import Point
 from .viewport import Viewport
 from .animation_manager import AnimationManager
 from anim.animation import Animation, EaseType
@@ -10,13 +12,19 @@ BASE_SENSITIVITY_POWER = 1
 BASE_ZOOM_FACTOR = 1.1
 
 class CameraController:
-    def __init__(self, viewport: Viewport, animation_manager: AnimationManager = None, base_speed: int = 1, mouse_sensitivity: float = 100):
-        
+    def __init__(self, viewport: Viewport, animation_manager: AnimationManager = None, base_speed: int = 1, mouse_sensitivity: float = 100, fixed_center: tuple | Point = None, default_set = [0, 0, 10, 10]):
+        self.pan_lock = (fixed_center is not None)
+        self.fixed_center = fixed_center
+        if not isinstance(self.fixed_center, Point) and self.pan_lock:
+            self.fixed_center = Point(self.fixed_center)
+
         self.viewport = viewport
         self.animation_manager = animation_manager
 
         self.speed = base_speed
         self.mouse_sensitivity = mouse_sensitivity
+
+        self.default_cx, self.default_cy, self.default_sx, self.default_sy = default_set
     
     def zoom_to(self, screen_x, screen_y, zoom_factor):
         mx, my = screen_x, screen_y
@@ -45,32 +53,44 @@ class CameraController:
             self.viewport,
             duration,
             ease_type,
+            loop=False,
+            two_way=False,
             **attrs
         ):
             self.animation_manager.add(animation)
 
-    def handle_panning_keys(self):
+    def handle_panning_keys(self, fps):
+        if self.fixed_center is not None:
+            return
+        
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.viewport.pan_by(0, self.viewport.scale_y * PAN_KEY_SPEED * self.speed)
+            self.viewport.pan_by(0, self.viewport.scale_y * PAN_KEY_SPEED * self.speed * (60 / fps))
         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.viewport.pan_by(self.viewport.scale_x * PAN_KEY_SPEED * self.speed, 0)
+            self.viewport.pan_by(self.viewport.scale_x * PAN_KEY_SPEED * self.speed * (60 / fps), 0)
         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.viewport.pan_by(0, -self.viewport.scale_y * PAN_KEY_SPEED * self.speed)
+            self.viewport.pan_by(0, -self.viewport.scale_y * PAN_KEY_SPEED * self.speed * (60 / fps))
         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            self.viewport.pan_by(-self.viewport.scale_x * PAN_KEY_SPEED * self.speed, 0)
+            self.viewport.pan_by(-self.viewport.scale_x * PAN_KEY_SPEED * self.speed * (60 / fps), 0)
     
-    def handle_zooming_keys(self):
+    def handle_zooming_keys(self, fps):
         keys = pygame.key.get_pressed()
         pos = pygame.mouse.get_pos()
         if keys[pygame.K_LSHIFT]:
-            pos = self.viewport.graph_to_screen(0,0)
+            pos = (self.viewport.width/2, self.viewport.height/2)
+
+        if self.fixed_center is not None:
+            pos = self.viewport.graph_to_screen(self.fixed_center.x, self.fixed_center.y)
+        
         if keys[pygame.K_z]:
-            self.zoom_to(*pos, BASE_ZOOM_FACTOR ** (ZOOM_KEY_SPEED * self.speed))
+            self.zoom_to(*pos, BASE_ZOOM_FACTOR ** (ZOOM_KEY_SPEED * self.speed * (60 / fps)))
         if keys[pygame.K_x]:
-            self.zoom_to(*pos, BASE_ZOOM_FACTOR ** (-ZOOM_KEY_SPEED * self.speed))
+            self.zoom_to(*pos, BASE_ZOOM_FACTOR ** (-ZOOM_KEY_SPEED * self.speed * (60 / fps)))
     
     def handle_panning_mouse(self):
+        if self.fixed_center is not None:
+            return
+        
         dx, dy = pygame.mouse.get_rel()
 
         if pygame.mouse.get_pressed()[0]:
@@ -87,13 +107,20 @@ class CameraController:
                 # Panning such that space expands/contracts about the mouse's position
 
                 pos = pygame.mouse.get_pos()
+                if self.fixed_center is not None:
+                    pos = self.viewport.graph_to_screen(self.fixed_center.x, self.fixed_center.y)
+
                 self.zoom_to(*pos, zoom_factor)
     
     def handle_anim_keys(self, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    self.animate_to((0,0),(10,10),duration=3, ease_type = EaseType.CUBIC_IN_OUT)
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_LSHIFT]:
+                        self.animate_to((0, 0), (10, 10), duration=3, ease_type=EaseType.CUBIC_IN_OUT)
+                    else:
+                        self.animate_to((self.default_cx,self.default_cy),(self.default_sx, self.default_sy),duration=3, ease_type = EaseType.CUBIC_IN_OUT)
                 elif event.key == pygame.K_p:
                     x = float(input("Center X: "))
                     y = float(input("Center Y: "))
@@ -115,14 +142,17 @@ class CameraController:
         if self.speed < 0:
             self.speed = 0
     
-    def update(self, events):
-        self.handle_panning_keys()
-        self.handle_zooming_keys()
-
+    def update(self, events, dt):
+        self.handle_panning_keys(dt)
         self.handle_panning_mouse()
+        self.handle_anim_keys(events)
+        self.handle_zooming_keys(dt)
         self.handle_zooming_mouse(events)
 
-        self.handle_anim_keys(events)
         self.handle_speed_change(events)
+
+        if self.fixed_center is not None:
+            #print(self.fixed_center)
+            self.viewport.pan_to(self.fixed_center.x, self.fixed_center.y)
 
         

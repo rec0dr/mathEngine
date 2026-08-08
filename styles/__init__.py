@@ -6,3 +6,4 @@ from .point_style import PointStyle
 from .text_style import TextStyle
 from .axis_label import AxisLabel
 from .line_segment_style import LineSegmentStyle
+from .circle_style import CircleStyle

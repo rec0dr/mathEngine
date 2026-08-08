@@ -49,6 +49,12 @@ class Viewport:
         self.scale_x /= scaleX
         self.scale_y /= scaleY
 
+    def zoom_by_x(self, scaleX):
+        self.scale_x /= scaleX
+
+    def zoom_by_y(self, scaleY):
+        self.scale_y /= scaleY
+
     def set_scale(self, scaleX, scaleY=None):
         if scaleY is None:
             scaleY = scaleX

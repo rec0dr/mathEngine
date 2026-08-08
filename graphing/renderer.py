@@ -15,8 +15,10 @@ from functions.parametric import Parametric
 from objects.point import Point
 from objects.line_segment import LineSegment
 from objects.label import Label
+from objects.circle import Circle
 
 from styles.style import Style
+from styles.circle_style import CircleStyle
 from styles.curve_style import CurveStyle
 from styles.point_style import PointStyle
 from styles.line_segment_style import LineSegmentStyle
@@ -43,14 +45,15 @@ class Renderer:
         self.default_BackgroundColor = (0,0,0)
 
         self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
-        self.default_PointStyle = PointStyle((255,0,0), 255, True, True)
+        self.default_PointStyle = PointStyle((255,0,0), 255, True, True, 5, 0, True)
         self.default_LineSegmentStyle = LineSegmentStyle((255, 255, 255), 255, True, True, False, None)
+        self.default_CircleStyle = CircleStyle()
 
         self.default_AxisLabelX = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
         self.default_AxisLabelY = AxisLabel("y", TextStyle((255,0,0), font_size=self.viewport.ui_scale(18)))
         self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
 
-        self.default_PointTextStyle = TextStyle((0,0,255), font_size=self.viewport.ui_scale(15), italic=True)
+        self.default_PointTextStyle = TextStyle((0,0,255), font_size=self.viewport.ui_scale(20), italic=True, y_offset = -10)
         self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
 
         self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
@@ -96,17 +99,17 @@ class Renderer:
 
             text_rect = text.get_rect()
             if xLeft is not None:
-                text_rect.left = xLeft
+                text_rect.left = xLeft + text_style.x_offset
             if xRight is not None:
-                text_rect.right = xRight
+                text_rect.right = xRight + text_style.x_offset
             if yBot is not None:
-                text_rect.bottom = yBot
+                text_rect.bottom = yBot + text_style.y_offset
             if yTop is not None:
-                text_rect.top = yTop
+                text_rect.top = yTop + text_style.y_offset
             if x is not None:
-                text_rect.centerx = x
+                text_rect.centerx = x + text_style.x_offset
             if y is not None:
-                text_rect.centery = y
+                text_rect.centery = y + text_style.y_offset
             
             self.screen.blit(text, text_rect)
 
@@ -198,7 +201,7 @@ class Renderer:
         major_amtY = math.log(self.viewport.scale_y, major_factorY)
         major_distY = major_factorY**(math.floor(major_amtY)) * tick_style.base_dist0y
         major_heightX = major_height_px / self.viewport.ppu_x
-        major_heightY = major_height_px / self.viewport.ppu_x
+        major_heightY = major_height_px / self.viewport.ppu_y
 
         # For now, minor ticks are determined by same factor as major, possible custom later?
 
@@ -209,7 +212,9 @@ class Renderer:
         minor_amtY = math.log(self.viewport.scale_y, minor_factorY)
         minor_distY = minor_factorY**(math.floor(minor_amtY)) * tick_style2.base_dist0y
         minor_heightX = minor_height_px / self.viewport.ppu_x
-        minor_heightY = minor_height_px / self.viewport.ppu_x
+        minor_heightY = minor_height_px / self.viewport.ppu_y
+
+
 
 
 
@@ -318,7 +323,22 @@ class Renderer:
             self.draw_text_px(x=pos2[0], yBot=pos2[1], txt=f"({x2:g}, {y2:g})", text_style=line_segment_style.label_style)
 
 
+    def draw_circle(self, circle: Circle, circle_style: CircleStyle = None):
+        if circle_style is None:
+            circle_style = self.default_CircleStyle
 
+        center = self.viewport.graph_to_screen(*circle.center)
+        radius_x = self.viewport.ppu_x * circle.radius
+        radius_y = self.viewport.ppu_y * circle.radius
+
+        rect = pygame.Rect(0, 0, radius_x * 2, radius_y * 2)
+        rect.center = center
+
+        if circle_style.visible:
+            pygame.draw.ellipse(self.screen, (*circle_style.color, circle_style.opacity), rect, circle_style.thickness)
+
+            if circle_style.show_center:
+                self.draw_point(Point(*circle.center), circle_style.center_style)
     
     def draw_label(self, label: Label, label_style: TextStyle = None):
         if label_style is None:
@@ -330,6 +350,8 @@ class Renderer:
     def draw_point(self, point: Point, point_style: PointStyle = None):
         if point_style is None:
             point_style = self.default_PointStyle
+        if point.x is None or point.y is None:
+            return
         x, y = self.viewport.graph_to_screen(point.x, point.y)
         if point_style.is_solid:
             point_style.border_width_px = 0
@@ -355,6 +377,11 @@ class Renderer:
         first_visible = None
         last_visible = None
 
+        jump_threshold = 5 * max(
+            self.boundR - self.boundL,
+            self.boundU - self.boundD
+        )
+
         while t <= max_parameter:
             x2, y2 = curve.point(t + graphAccuracy)
 
@@ -363,10 +390,17 @@ class Renderer:
                 t += graphAccuracy
                 continue
             elif (
+                    # Same-side out of bounds
                     (x1 < self.boundL and x2 < self.boundL) or
                     (x1 > self.boundR and x2 > self.boundR) or
                     (y1 < self.boundD and y2 < self.boundD) or
-                    (y1 > self.boundU and y2 > self.boundU)
+                    (y1 > self.boundU and y2 > self.boundU) or
+
+                    # Crossing entire viewport
+                    (x1 < self.boundL and x2 > self.boundR) or
+                    (x1 > self.boundR and x2 < self.boundL) or
+                    (y1 < self.boundD and y2 > self.boundU) or
+                    (y1 > self.boundU and y2 < self.boundD)
                 ):
                 x1, y1 = x2, y2
                 t += graphAccuracy

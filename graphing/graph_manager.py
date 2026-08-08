@@ -1,4 +1,5 @@
 from .graph_object import GraphObject
+from functions.function import Function
 
 class GraphManager:
     def __init__(self):
@@ -23,3 +24,7 @@ class GraphManager:
     
     def __getitem__(self, index):
         return self.graph_objects[index]
+            
+
+
+

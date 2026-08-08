@@ -13,14 +13,29 @@ T = Variable("t")
 
 # Simplistic functions
 
-SIN = Sinusoid(trig_type=TrigType.SIN)
-COS = Sinusoid(trig_type=TrigType.COS)
-TAN = Sinusoid(trig_type=TrigType.TAN)
-CSC = Sinusoid(trig_type=TrigType.CSC)
-SEC = Sinusoid(trig_type=TrigType.SEC)
-COT = Sinusoid(trig_type=TrigType.COT)
-LOG = Logarithm(base=10)
-LN  = Logarithm(base=math.e)
+def SIN(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.SIN)
+
+def COS(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.COS)
+
+def TAN(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.TAN)
+
+def CSC(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.CSC)
+
+def SEC(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.SEC)
+
+def COT(arg):
+    return Sinusoid(arg=arg, trig_type=TrigType.COT)
+
+def LOG(arg, base=10):
+    return Logarithm(arg=arg, base=base)
+
+def LN(arg):
+    return Logarithm(arg=arg, base=math.e)
 
 # Colors
 # T = Tuple

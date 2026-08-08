@@ -11,4 +11,6 @@ class TextStyle(Style):
     font_type: any = None
     bold: bool = False
     italic: bool = False
+    x_offset: int = 0
+    y_offset: int = 0
     

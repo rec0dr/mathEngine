@@ -2,3 +2,4 @@ from .point import Point
 from .traced_point import TracedPoint
 from .line_segment import LineSegment
 from .label import Label
+from .circle import Circle

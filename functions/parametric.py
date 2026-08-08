@@ -1,9 +1,8 @@
 import math
 from .curve import Curve
-from .function import Variable
 from styles.curve_style import CurveStyle
 class Parametric(Curve):
-    def __init__(self, argX=Variable("x"), argY=Variable("x"), tMin=-10, tMax=10):
+    def __init__(self, argX, argY, tMin=-10, tMax=10):
         self.argX, self.argY = argX, argY
         self.tMin = tMin
         self.tMax = tMax
@@ -23,3 +22,12 @@ class Parametric(Curve):
     
     def parameter_interval(self, renderer):
         return self.tMin, self.tMax
+
+    def inverse(self, tMin=None, tMax=None):
+
+        if tMin is None:
+            tMin = self.tMin
+        if tMax is None:
+            tMax = self.tMax
+
+        return Parametric(self.argY, self.argX, tMin, tMax)

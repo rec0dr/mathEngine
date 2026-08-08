@@ -2,7 +2,7 @@ import math
 from .easing import *
 
 class Animation:
-    def __init__(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None, loop=False, two_way = False):
+    def __init__(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None, loop=True, two_way=True):
         self.target = target
         
         parts = property_name.split(".")
@@ -25,9 +25,9 @@ class Animation:
         self.two_way = two_way
     
     @classmethod
-    def multiple(cls, target, duration=1, ease_type=EaseType.LINEAR, **attrs):
+    def multiple(cls, target, duration=1, ease_type=EaseType.LINEAR, loop=True, two_way=True, **attrs):
         return [
-            cls(target, name, end, duration, ease_type) 
+            cls(target, name, end, duration, ease_type, loop=loop, two_way=two_way) 
             for name, end in attrs.items()
         ]
     

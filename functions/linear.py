@@ -1,5 +1,5 @@
 import math
-from .function import Function
+from .function import Function, Value
 
 class Linear(Function):
     def __init__(self, a, b, c, eqString=None):
@@ -8,6 +8,12 @@ class Linear(Function):
         self.b = float(b)
         self.c = float(c)
         self._custom_eqString = eqString
+
+    def derivative(self):
+        # The derivative of a linear function is the slope, which is -a/b
+        if self.b == 0:
+            raise ValueError("Cannot compute derivative for vertical line (b=0).")
+        return Value(-self.a / self.b)
     
     @classmethod
     def from_standard(cls, a, b, c, eqString=None):

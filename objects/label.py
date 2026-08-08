@@ -1,3 +1,5 @@
+from functions.function import Function
+
 class Label:
     def __init__(self, x=0, y=0, text=None):
         self._x = x
@@ -9,25 +11,30 @@ class Label:
     def update(self, dt):
         pass
 
+    def evaluate(self, value):
+        if isinstance(value, Function):
+            return value.evaluate(0)
+        return value
+
     @property
     def x(self):
-        return self._x
+        return self.evaluate(self._x)
 
     @x.setter
     def x(self, value):
         self._x = value
         if self._auto_text:
-            self._text = f"({self._x}, {self._y})"
+            self._text = f"({self.x}, {self.y})"
 
     @property
     def y(self):
-        return self._y
+        return self.evaluate(self._y)
 
     @y.setter
     def y(self, value):
         self._y = value
         if self._auto_text:
-            self._text = f"({self._x}, {self._y})"
+            self._text = f"({self.x}, {self.y})"
 
     @property
     def text(self):
