@@ -63,4 +63,4 @@ class LineSegment:
         pass
 
     def __str__(self):
-        return f"{self.pos1} -> {self.pos2}"
+        return f"({self.pos1[0]:.3f}, {self.pos1[1]:.3f}) to ({self.pos2[0]:.3f}, {self.pos2[1]:.3f})"

@@ -1,7 +1,6 @@
 import math
 from enum import Enum
 from .curve import Curve
-from .parametric import Parametric
 from styles.curve_style import CurveStyle
 
 class Operation(Enum):
@@ -84,9 +83,6 @@ class Function(Curve):
     def parameter_interval(self, renderer):
         return renderer.boundL, renderer.boundR
 
-    def inverse(self, tMin=-10, tMax=10):
-        return Parametric(self, Variable("x"), tMin, tMax)
-
     def derivative(self):
         raise NotImplementedError("Derivative not implemented for this function.")
     
@@ -116,20 +112,35 @@ class Combination(Function):
         a = self.left.evaluate(x)
         b = self.right.evaluate(x)
         if a is None or b is None:
-            return None
-        
-        if self.operation == Operation.ADD:
-            return a + b
-        elif self.operation == Operation.SUBTRACT:
-            return a - b
-        elif self.operation == Operation.MULTIPLY:
-            return a * b
-        elif self.operation == Operation.DIVIDE:
-            return a / b
-        elif self.operation == Operation.POWER:
-            return a ** b
-        elif self.operation == Operation.ABS:
-            return abs(a)
+            result = None
+        else:
+
+            try:
+                if self.operation == Operation.ADD:
+                    result = a + b
+                elif self.operation == Operation.SUBTRACT:
+                    result = a - b
+                elif self.operation == Operation.MULTIPLY:
+                    result = a * b
+                elif self.operation == Operation.DIVIDE:
+                    result = a / b
+                elif self.operation == Operation.POWER:
+                    result = a ** b
+                elif self.operation == Operation.ABS:
+                    result = abs(a)
+
+            except ZeroDivisionError:
+                result = None
+            except TypeError:
+                result = None
+            except ValueError:
+                result = None
+
+        if not isinstance(result, (int, float)):
+            result = None
+
+        # print(f"{x:g}", result)
+        return result
 
     def derivative(self):
         if self.operation == Operation.ADD:
@@ -166,13 +177,13 @@ class Combination(Function):
             
             if isinstance(self.left, Value):
                 #print("")
-                return Combination(Combination(math.log(self.left.value), Operation.MULTIPLY, Combination(self.left.value, Operation.POWER, self.right)),
+                return Combination(Combination(math.log(self.left.evaluate(0)), Operation.MULTIPLY, Combination(self.left.evaluate(0), Operation.POWER, self.right)),
                 Operation.MULTIPLY,
                 self.right.derivative())
 
             if isinstance(self.right, Value):
                 #print("")
-                return Combination(Combination(Combination(self.left, Operation.POWER, self.right.value - 1), Operation.MULTIPLY, self.left.derivative()), Operation.MULTIPLY, self.right.value)
+                return Combination(Combination(Combination(self.left, Operation.POWER, self.right.evaluate(0) - 1), Operation.MULTIPLY, self.left.derivative()), Operation.MULTIPLY, self.right.evaluate(0))
 
             # Fix later
             from .logarithm import Logarithm
@@ -185,122 +196,131 @@ class Combination(Function):
     def __str__(self):
         string = ""
         if self.operation == Operation.ADD:
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                return str(self.left.value + self.right.value)
+            if (str(self.left) == "0" or isinstance(self.left, Value)) and (str(self.right) == "0" or isinstance(self.right, Value)):
+                return str(self.left.evaluate(0) + self.right.evaluate(0))
             
             if isinstance(self.left, Value):
-                if self.left.value == 0:
+                if self.left.evaluate(0) == 0:
                     return str(self.right)
                 else:
                     return f"{str(self.left)} + ({str(self.right)})"
 
             if isinstance(self.right, Value):
-                if self.right.value == 0:
+                if self.right.evaluate(0) == 0:
                     return str(self.left)
-                elif self.right.value < 0:
-                    return f"({str(self.left)}) - {str(Value(-self.right.value))}"
+                elif self.right.evaluate(0) < 0:
+                    return f"({str(self.left)}) - {str(Value(-self.right.evaluate(0)))}"
                 else:
                     return f"({str(self.left)}) + {str(self.right)}"
             
             return f"({str(self.left)}) + ({str(self.right)})"
 
         elif self.operation == Operation.SUBTRACT:
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                return str(self.left.value - self.right.value)
+            if (str(self.left) == "0" or isinstance(self.left, Value)) and (str(self.right) == "0" or isinstance(self.right, Value)):
+                return str(self.left.evaluate(0) - self.right.evaluate(0))
             
             if isinstance(self.left, Value):
-                if self.left.value == 0:
+                if self.left.evaluate(0) == 0:
                     return f"-({str(self.right)})"
                 else:
                     return f"{str(self.left)} - ({str(self.right)})"
 
             if isinstance(self.right, Value):
-                if self.right.value == 0:
+                if self.right.evaluate(0) == 0:
                     return str(self.left)
-                elif self.right.value < 0:
-                    return f"({str(self.left)}) + {str(Value(-self.right.value))}"
+                elif self.right.evaluate(0) < 0:
+                    return f"({str(self.left)}) + {str(Value(-self.right.evaluate(0)))}"
                 else:
                     return f"({str(self.left)}) - {str(self.right)}"
             
             return f"({str(self.left)}) - ({str(self.right)})"
 
         elif self.operation == Operation.MULTIPLY:
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                return str(self.left.value * self.right.value)
+            if (str(self.left) == "0" or isinstance(self.left, Value)) and (str(self.right) == "0" or isinstance(self.right, Value)):
+                return str(self.left.evaluate(0) * self.right.evaluate(0))
             
             if isinstance(self.left, Value):
-                if self.left.value == 0:
+                if self.left.evaluate(0) == 0:
                     return "0"
-                elif self.left.value == 1:
+                elif self.left.evaluate(0) == 1:
                     return str(self.right)
                 else:
                     # New logic for multiplication with combinations
                     if isinstance(self.right, Combination):
                         if self.right.operation == Operation.MULTIPLY:
                             if isinstance(self.right.left, Value):
-                                return f"{str(Combination(self.left.value * self.right.left.value, Operation.MULTIPLY, self.right.right))}"
+                                return f"{str(Combination(self.left.evaluate(0) * self.right.left.evaluate(0), Operation.MULTIPLY, self.right.right))}"
                             elif isinstance(self.right.right, Value):
-                                return f"{str(Combination(self.left.value * self.right.right.value, Operation.MULTIPLY, self.right.left))}"
+                                return f"{str(Combination(self.left.evaluate(0) * self.right.right.evaluate(0), Operation.MULTIPLY, self.right.left))}"
 
                         elif self.right.operation == Operation.DIVIDE:
                             if isinstance(self.right.left, Value):
-                                return f"{str(Combination(self.left.value * self.right.left.value, Operation.DIVIDE, self.right.right))}"
+                                return f"{str(Combination(self.left.evaluate(0) * self.right.left.evaluate(0), Operation.DIVIDE, self.right.right))}"
                             elif isinstance(self.right.right, Value):
-                                return f"{str(Combination(self.left.value / self.right.right.value, Operation.MULTIPLY, self.right.left))}"
+                                return f"{str(Combination(self.left.evaluate(0) / self.right.right.evaluate(0), Operation.MULTIPLY, self.right.left))}"
                         
                     return f"{str(self.left)} * ({str(self.right)})"
 
             if isinstance(self.right, Value):
-                if self.right.value == 0:
+                if self.right.evaluate(0) == 0:
                     return "0"
-                elif self.right.value == 1:
+                elif self.right.evaluate(0) == 1:
                     return str(self.left)
+                elif isinstance(self.left, Variable):
+                    return f"{str(self.left)} * {str(self.right)}"
                 else:
                     return f"({str(self.left)}) * {str(self.right)}"
             
             return f"({str(self.left)}) * ({str(self.right)})"
 
         elif self.operation == Operation.DIVIDE:
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                return str(self.left.value / self.right.value)
+            if (str(self.left) == "0" or isinstance(self.left, Value)) and (str(self.right) == "0" or isinstance(self.right, Value)):
+                try:
+                    return str(self.left.evaluate(0) / self.right.evaluate(0))
+                except ZeroDivisionError:
+                    return str("NaN")
             
             if isinstance(self.left, Value):
-                if self.left.value == 0:
+                if self.left.evaluate(0) == 0:
                     return "0"
                 else:
                     return f"{str(self.left)} / ({str(self.right)})"
 
             if isinstance(self.right, Value):
-                if self.right.value == 1:
+                if self.right.evaluate(0) == 1:
                     return str(self.left)
+                elif isinstance(self.left, Variable):
+                    return f"{str(self.left)} / {str(self.right)}"
                 else:
                     return f"({str(self.left)}) / {str(self.right)}"
             
             return f"({str(self.left)}) / ({str(self.right)})"
         
         elif self.operation == Operation.POWER:
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                return str(self.left.value ** self.right.value)
+            if (str(self.left) == "0" or isinstance(self.left, Value)) and (str(self.right) == "0" or isinstance(self.right, Value)):
+                return str(self.left.evaluate(0) ** self.right.evaluate(0))
             
             if isinstance(self.left, Value):
-                if self.left.value == 0:
+                if self.left.evaluate(0) == 0:
                     return "0"
-                elif self.left.value == 1:
+                elif self.left.evaluate(0) == 1:
                     return "1"
-                elif self.left.value > 0:
+                elif self.left.evaluate(0) > 0:
                     return f"{str(self.left)} ^ ({str(self.right)})"
 
             if isinstance(self.right, Value):
-                if self.right.value == 0:
+                if self.right.evaluate(0) == 0:
                     return "1"
-                elif self.right.value == 1:
+                elif self.right.evaluate(0) == 1:
                     return str(self.left)
+                elif isinstance(self.left, Variable):
+                    return f"{str(self.left)} ^ {str(self.right)}"
                 else:
                     return f"({str(self.left)}) ^ {str(self.right)}"
             
             return f"({str(self.left)}) ^ ({str(self.right)})"
         
-        return f"({str(self.left)}) {self.operation.value} ({str(self.right)})"
+        return f"({str(self.left)}) {self.operation} ({str(self.right)})"
 
 class Value(Function):
     def __init__(self, value):
@@ -312,8 +332,8 @@ class Value(Function):
 
     def __str__(self):
         if callable(self.value):
-            return "<dynamic>"
-        return str(self.value)
+            return f"{self.value():.3f}"
+        return f"{self.value:.3f}"
 
     def evaluate(self, x):
         if callable(self.value):

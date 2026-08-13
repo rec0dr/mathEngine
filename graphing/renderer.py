@@ -28,7 +28,7 @@ from styles.tick_style import TickStyle
 from styles.axis_label import AxisLabel
 
 class Renderer:
-    def __init__(self, screen: pygame.Surface, viewport: Viewport, graph_manager: GraphManager, animation_manager: AnimationManager, camera_controller: CameraController):
+    def __init__(self, screen: pygame.Surface, viewport: Viewport, graph_manager: GraphManager, animation_manager: AnimationManager, camera_controller: CameraController, fps=60):
         self.screen = screen
         self.viewport = viewport
         self.graph_manager = graph_manager
@@ -40,6 +40,8 @@ class Renderer:
 
         self.tick_font = pygame.font.SysFont(None, self.viewport.ui_scale(18))
         self.tick_font2 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
+
+        self.fps = fps
 
         # Defaults
         self.default_BackgroundColor = (0,0,0)
@@ -54,7 +56,7 @@ class Renderer:
         self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
 
         self.default_PointTextStyle = TextStyle((0,0,255), font_size=self.viewport.ui_scale(20), italic=True, y_offset = -10)
-        self.default_UITextStyle = TextStyle((255,0,0), font_size=self.viewport.ui_scale(18), bold=True)
+        self.default_UITextStyle = TextStyle((255, 255, 255), font_size=self.viewport.ui_scale(18), bold=True)
 
         self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
         self.default_MinorTickStyle = TickStyle((255,255,255), 128, True, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
@@ -435,19 +437,27 @@ class Renderer:
 
                 self.draw_arrowhead(x1, y1, dx, dy, width, length, curve_style)
     
-    def draw_UI_line(self, lineNum, marginX, marginY, txt, text_style: TextStyle = None):
+    def draw_UI_line(self, lineNum, marginX, marginY, txt, text_style: TextStyle = None, corner = "NW"):
         if text_style is None:
             text_style = self.default_UITextStyle
         one_line_height = text_style.font_size
         x_left = marginX
         y_center = marginY + (lineNum * one_line_height)
         text = txt
-        self.draw_text_px(xLeft = x_left, y = y_center, txt = text, text_style = text_style)
+        if corner == "NW":
+            self.draw_text_px(xLeft = x_left, y = y_center, txt = text, text_style = text_style)
+        elif corner == "NE":
+            self.draw_text_px(xRight = self.viewport.width - x_left, y = y_center, txt = text, text_style = text_style)
+        elif corner == "SW":
+            self.draw_text_px(xLeft = x_left, y = self.viewport.height - y_center, txt = text, text_style = text_style)
+        elif corner == "SE":
+            self.draw_text_px(xRight = self.viewport.width - x_left, y = self.viewport.height - y_center, txt = text, text_style = text_style)
 
-    def draw_UI(self, text_style: TextStyle = None):
+    def draw_def_UI(self, text_style: TextStyle = None):
         x_margin = self.viewport.ui_scale(20)
         y_margin = self.viewport.ui_scale(20)
         self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", text_style=text_style)
         self.draw_UI_line(1, marginX = x_margin, marginY = y_margin, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", text_style=text_style)
         self.draw_UI_line(2, marginX = x_margin, marginY = y_margin, txt=f"Move Speed: {self.camera_controller.speed:g}", text_style=text_style)
+        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"FPS: {self.fps}", text_style = text_style, corner="NE")
 

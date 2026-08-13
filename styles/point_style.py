@@ -9,3 +9,6 @@ class PointStyle(Style):
     border_width_px: int = 0
     labeled: bool = False
     label_style: TextStyle = None
+
+    draggable: bool = False
+    hovered: bool = False

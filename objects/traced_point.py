@@ -8,6 +8,9 @@ class TracedPoint(Point):
         self.curve = curve
         self._parameter = parameter
 
+    def __str__(self):
+        return f"t = {self.parameter:.3f}, p = ({self.x:.3f}, {self.y:.3f})"
+
     @property
     def parameter(self):
         if isinstance(self._parameter, Function):

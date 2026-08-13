@@ -13,6 +13,9 @@ class Circle:
         if isinstance(radius, (int, float)):
             self._radius = Value(radius)
 
+    def __str__(self):
+        return f"C: {self.center}, R: {self.radius}"
+
     def evaluate_point(self, point):
         return (point[0].evaluate(0), point[1].evaluate(0))
 

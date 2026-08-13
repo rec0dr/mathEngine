@@ -42,10 +42,10 @@ class Point:
 
     @pos.setter
     def pos(self, tuple):
-        self._x, self._y = tuple
+        self._x, self._y = Value(tuple[0]), Value(tuple[1])
     
     def update(self, dt):
         pass
     
     def __str__(self):
-        return f"({self.x}, {self.y})"
+        return f"({self.x:.3f}, {self.y:.3f})"

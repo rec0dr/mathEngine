@@ -62,14 +62,15 @@ THICK = 6
 # Numbers
 PI = math.pi
 E = math.e
+π = PI
 
 # Parametrics
 
-def PARAMETRIC_CIRCLE(r: float):
-    return Parametric(argX=r*Sinusoid(trig_type=TrigType.COS), argY=r*Sinusoid(), tMin=0, tMax=2*PI)
+def PARAMETRIC_CIRCLE(r: float, center: tuple):
+    return Parametric(argX=r*Sinusoid(trig_type=TrigType.COS) + center[0], argY=r*Sinusoid() + center[1], tMin=0, tMax=2*PI)
 
-def PARAMETRIC_ELLIPSE(r1: float, r2: float):
-    return Parametric(argX=r1*Sinusoid(trig_type=TrigType.COS), argY=r2*Sinusoid(), tMin=0, tMax=2*PI)
+def PARAMETRIC_ELLIPSE(r1: float, r2: float, center: tuple):
+    return Parametric(argX=r1*Sinusoid(trig_type=TrigType.COS) + center[0], argY=r2*Sinusoid() + center[1], tMin=0, tMax=2*PI)
 
 
 

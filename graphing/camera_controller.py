@@ -25,6 +25,9 @@ class CameraController:
         self.mouse_sensitivity = mouse_sensitivity
 
         self.default_cx, self.default_cy, self.default_sx, self.default_sy = default_set
+        self.locked = False
+
+        self.camera_anims = []
     
     def zoom_to(self, screen_x, screen_y, zoom_factor):
         mx, my = screen_x, screen_y
@@ -49,6 +52,7 @@ class CameraController:
             attrs["scale_x"] = scale_x
             attrs["scale_y"] = scale_y
 
+        animations = []
         for animation in Animation.multiple(
             self.viewport,
             duration,
@@ -58,6 +62,9 @@ class CameraController:
             **attrs
         ):
             self.animation_manager.add(animation)
+            animations.append(animation)
+
+        return animations
 
     def handle_panning_keys(self, fps):
         if self.fixed_center is not None:
@@ -118,9 +125,10 @@ class CameraController:
                 if event.key == pygame.K_r:
                     keys = pygame.key.get_pressed()
                     if keys[pygame.K_LSHIFT]:
-                        self.animate_to((0, 0), (10, 10), duration=3, ease_type=EaseType.CUBIC_IN_OUT)
+                        self.camera_anims = self.animate_to((0, 0), (10, 10), duration=3, ease_type=EaseType.CUBIC_IN_OUT)
                     else:
-                        self.animate_to((self.default_cx,self.default_cy),(self.default_sx, self.default_sy),duration=3, ease_type = EaseType.CUBIC_IN_OUT)
+                        self.camera_anims = self.animate_to((self.default_cx,self.default_cy),(self.default_sx, self.default_sy),duration=3, ease_type = EaseType.CUBIC_IN_OUT)
+
                 elif event.key == pygame.K_p:
                     x = float(input("Center X: "))
                     y = float(input("Center Y: "))
@@ -143,16 +151,23 @@ class CameraController:
             self.speed = 0
     
     def update(self, events, dt):
-        self.handle_panning_keys(dt)
-        self.handle_panning_mouse()
-        self.handle_anim_keys(events)
-        self.handle_zooming_keys(dt)
-        self.handle_zooming_mouse(events)
+        for anim in self.camera_anims:
+            if anim.finished:
+                self.camera_anims.remove(anim)
+                self.locked = False
+            else:
+                self.locked = True
+        if not self.locked:
+            self.handle_panning_keys(dt)
+            self.handle_panning_mouse()
+            self.handle_anim_keys(events)
+            self.handle_zooming_keys(dt)
+            self.handle_zooming_mouse(events)
 
-        self.handle_speed_change(events)
+            self.handle_speed_change(events)
 
-        if self.fixed_center is not None:
-            #print(self.fixed_center)
-            self.viewport.pan_to(self.fixed_center.x, self.fixed_center.y)
+            if self.fixed_center is not None:
+                #print(self.fixed_center)
+                self.viewport.pan_to(self.fixed_center.x, self.fixed_center.y)
 
         

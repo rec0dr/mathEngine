@@ -7,7 +7,7 @@ from .renderer import Renderer
 from .graph_object import GraphObject
 from .graph_manager import GraphManager
 from .analyzer import Analyzer
-from .registries import STYLE_MAP
+from .registries import STYLE_MAP, NAME_MAP
 
 from anim.animation import Animation, EaseType
 
@@ -30,7 +30,7 @@ BASE_SENSITIVITY_POWER = 1
 BASE_ZOOM_FACTOR = 1.1
 
 class GraphApp:
-    def __init__(self, width, height, scaleX=10, scaleY=10, pan_sensitivity=100, zoom_sensitivity=None, fps=60, fixed_center: Point = None):
+    def __init__(self, width, height, scaleX=10, scaleY=10, pan_sensitivity=100, zoom_sensitivity=None, fps=60, show_camera_center: bool = False, fixed_center: Point = None):
         if zoom_sensitivity is None:
             zoom_sensitivity = pan_sensitivity
         pygame.init()
@@ -59,7 +59,13 @@ class GraphApp:
 
         self.graphObjects = []
 
+        self.show_camera_center = show_camera_center
+        self.allow_mouse = True
+        self.prev_point = None
+
         pygame.display.set_caption("Le, Evan - Math Engine Indev 0.0.1")
+
+
 
     def show_camera_status(self):
         if pygame.mouse.get_pressed()[2]:
@@ -71,13 +77,16 @@ class GraphApp:
         self.renderer.draw_ticks()
 
 
+    def add_animation(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None, loop=True, two_way=True):
+        self.animation_manager.add(Animation(target, property_name, end, duration, ease_type, start, loop, two_way))
+        
     def add_animations(self, *animations: Animation):
         self.animation_manager.add(*animations)
     
     def add_graph_objects(self, *objects: GraphObject):
         self.graph_manager.add(*objects)
 
-    def add_object(self, object, **style_kwargs):
+    def add_styled_object(self, object, **style_kwargs):
         if isinstance(object, (int, float)):
             object = Value(object)
         drawable = object
@@ -94,7 +103,14 @@ class GraphApp:
         self.graph_manager.add(new_object)
         return new_object
 
-    def add_dobjects(self, *objects):
+    def add_styled_objects(self, object_list, **style_kwargs):
+        for object in object_list:
+            self.add_styled_object(object, **style_kwargs)
+
+    def add_object(self, object, **style_kwargs):
+        self.add_styled_object(object, **style_kwargs)
+
+    def add_unstyled_objects(self, *objects):
         for object in objects:
             self.add_object(object)
     
@@ -120,12 +136,16 @@ class GraphApp:
                     print(current_fps)
                 elif event.key == pygame.K_e:
                     x, y = self.viewport.screen_to_graph(*pygame.mouse.get_pos())
-                    self.add_object(Point(x, y), color=(255, 0, 0), radius_px=5, labeled=True)
+                    cur_point = Point(x, y)
+                    self.add_object(cur_point, color=(255, 0, 0), radius_px=10, draggable=True)
 
-                    if self.prevpoint is not None:
-                        self.add_object(LineSegment(Point(self.prevpoint.x, self.prevpoint.y), Point(x, y)))
+                    if self.prev_point is not None:
+                        self.add_object(LineSegment(self.prev_point, cur_point), show_ends=False)
+                        print(self.prev_point.x, self.prev_point.y)
 
-                    self.prevpoint = Point(x, y)
+                    self.prev_point = cur_point
+                elif event.key == pygame.K_c:
+                    self.graph_manager.graph_objects = []
 
                         
     
@@ -142,10 +162,76 @@ class GraphApp:
     def draw_objects(self):
         for object in self.graph_manager:
             self.renderer.draw_graph(object)
-    
+
+    def handle_settings(self):
+        if self.show_camera_center:
+            self.renderer.draw_point(Point(self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)))
+
+    def move_dragged(self):
+        mouse_pos = pygame.mouse.get_pos()
+        any_hover = False
+        for object in self.graph_manager:
+            style = object.style
+            drawable = object.drawable
+            if isinstance(drawable, Point) and isinstance(style, PointStyle):
+                if not style.draggable:
+                    return
+                
+                if style.hovered:
+                    if pygame.mouse.get_pressed()[0]:
+                        if not any_hover:
+                            if isinstance(drawable, TracedPoint):
+                                mouse_x = self.viewport.screen_to_graph(*mouse_pos)[0]
+                                drawable.parameter = mouse_x
+                            else:
+                                drawable.pos = self.viewport.screen_to_graph(*mouse_pos)
+                            any_hover = True
+                        self.camera_controller.locked = True
+                    else:
+                        self.camera_controller.locked = False
+                point_pos = self.viewport.graph_to_screen(*drawable.pos)
+
+                if isinstance(drawable, TracedPoint):
+                    if style.hovered:
+                        if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px:
+                            style.hovered = True
+                        else:
+                            style.hovered = False
+                    else:
+                        if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px and abs(mouse_pos[1] - point_pos[1]) <= style.radius_px:
+                            style.hovered = True
+                        else:
+                            style.hovered = False
+                else:
+                    if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px and abs(mouse_pos[1] - point_pos[1]) <= style.radius_px:
+                        style.hovered = True
+                    else:
+                        style.hovered = False
+                
+                print(style.hovered)
+
+    def draw_UI(self, dt):
+        self.renderer.fps = round(self.clock.get_fps(), 3)
+        self.renderer.draw_def_UI()
+        ln = 4
+
+        for graph in self.graph_manager.graph_objects:
+            if graph.style.show_ui:
+                for cls in type(graph.drawable).__mro__:
+                    if cls in NAME_MAP:
+                        graph_name = NAME_MAP[cls]
+                        break
+                name = f"{graph_name}"
+                if graph.style.name != "":
+                    name = name + " "
+                name = name + f"{graph.style.name}: {str(graph.drawable)}"
+
+                self.renderer.draw_UI_line(ln, self.viewport.ui_scale(20), self.viewport.ui_scale(20), name, text_style=TextStyle(color=graph.style.color, font_size=self.viewport.ui_scale(18), bold=True))
+                ln += 1
+
     def run(self):
 
-        self.prevpoint = None
+        self.prev_point = None
 
         self.running = True
         while self.running:
@@ -155,8 +241,10 @@ class GraphApp:
 
             self.update_animations(dt)
             self.draw_objects()
+            self.handle_settings()
+            self.move_dragged()
             
-            self.renderer.draw_UI()
+            self.draw_UI(dt)
             self.end_frame()
         pygame.quit()
     

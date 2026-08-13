@@ -49,7 +49,7 @@ class Analyzer:
             #print(curIter, minVal, minX, boundL, boundR)
 
         if minVal > precision:
-            raise ValueError("No intersections found in given range! Closest value: " + str(minVal) + " @ x = " + str(minX))
+            raise ValueError("No intersections found in given range! Smallest error: " + str(minVal) + " @ x = " + str(minX))
         
         print(f"Intersection: ({minX:g}, {f.evaluate(minX):g})")
         print(f"Error: {minVal}")

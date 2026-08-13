@@ -1,6 +1,9 @@
 class Curve:
     def __init__(self):
         pass
+
+    def __str__(self):
+        raise NotImplementedError
     
     def point(self, t):
         """Return the graph coordinate (x, y) at time t."""
