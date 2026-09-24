@@ -65,28 +65,37 @@ class GraphApp:
 
         pygame.display.set_caption("Le, Evan - Math Engine Indev 0.0.1")
 
-
-
     def show_camera_status(self):
+        """Helps the developer test the camera status at any given time."""
+
         if pygame.mouse.get_pressed()[2]:
             self.viewport.status()
     
     def begin_frame(self):
+        """Runs at the beginning of each frame by clearing the renderer, drawing the axes, and drawing the grid."""
+
         self.renderer.clear()
         self.renderer.draw_axes()
-        self.renderer.draw_ticks()
+        self.renderer.draw_grid()
 
 
     def add_animation(self, target, property_name, end=1, duration=1, ease_type: EaseType = EaseType.LINEAR, start=None, loop=True, two_way=True):
+        """Adds an animation to the app with customizable parameters."""
         self.animation_manager.add(Animation(target, property_name, end, duration, ease_type, start, loop, two_way))
         
     def add_animations(self, *animations: Animation):
+        """Adds multiple animations, each in the form of an Animation() class."""
+
         self.animation_manager.add(*animations)
     
     def add_graph_objects(self, *objects: GraphObject):
+        """Adds multiple graphs to the app simultaneously, each being a GraphObject object."""
+
         self.graph_manager.add(*objects)
 
     def add_styled_object(self, object, **style_kwargs):
+        """Adds a styled object to the app via customizable parameters for the style."""
+
         if isinstance(object, (int, float)):
             object = Value(object)
         drawable = object
@@ -104,26 +113,37 @@ class GraphApp:
         return new_object
 
     def add_styled_objects(self, object_list, **style_kwargs):
+        """Adds multiple styled objects to the app via a dictionary. Not recommended."""
+
         for object in object_list:
             self.add_styled_object(object, **style_kwargs)
 
     def add_object(self, object, **style_kwargs):
+        """Default function for adding an object; identical to add_styled_object()."""
+
         self.add_styled_object(object, **style_kwargs)
 
     def add_unstyled_objects(self, *objects):
+        """Adds multiple objects at the same time, all unstyled."""
+
         for object in objects:
             self.add_object(object)
     
     def end_frame(self):
+        """Runs at the end of each frame. (Default procedures)"""
+
         self.screen.blit(self.renderer.overlay,(0,0))
         pygame.display.flip()
     
     def check_quit(self, events):
+        """Checks for if the user exited the window to trigger a quit sequence."""
+
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
     
     def key_inputs(self, events):
+        """Checks for various non-camera keyboard inputs."""
 
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -141,15 +161,15 @@ class GraphApp:
 
                     if self.prev_point is not None:
                         self.add_object(LineSegment(self.prev_point, cur_point), show_ends=False)
-                        print(self.prev_point.x, self.prev_point.y)
+                        # print(self.prev_point.x, self.prev_point.y)
 
                     self.prev_point = cur_point
                 elif event.key == pygame.K_c:
                     self.graph_manager.graph_objects = []
 
-                        
-    
     def handle_inputs(self, dt):
+        """General function for handling all inputs, camera and non-camera, along with exit checks."""
+
         events = pygame.event.get()
 
         self.check_quit(events)
@@ -157,17 +177,25 @@ class GraphApp:
         self.camera_controller.update(events, dt)
     
     def update_animations(self, dt):
+        """Runs each frame. Uses the animation manager to update each individual animation given a change in time."""
+
         self.animation_manager.update(dt)
     
     def draw_objects(self):
+        """Standard procedure for drawing all non-default objects in the app."""
+
         for object in self.graph_manager:
             self.renderer.draw_graph(object)
 
     def handle_settings(self):
+        """Procedure for handling all custom settings."""
+
         if self.show_camera_center:
             self.renderer.draw_point(Point(self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)))
 
     def move_dragged(self):
+        """Moves draggable points each frame via various checks and style customs."""
+
         mouse_pos = pygame.mouse.get_pos()
         any_hover = False
         for object in self.graph_manager:
@@ -211,6 +239,8 @@ class GraphApp:
                 print(style.hovered)
 
     def draw_UI(self, dt):
+        """Runs every frame to draw the UI - default and user-created."""
+
         self.renderer.fps = round(self.clock.get_fps(), 3)
         self.renderer.draw_def_UI()
         ln = 4
@@ -226,10 +256,15 @@ class GraphApp:
                     name = name + " "
                 name = name + f"{graph.style.name}: {str(graph.drawable)}"
 
-                self.renderer.draw_UI_line(ln, self.viewport.ui_scale(20), self.viewport.ui_scale(20), name, text_style=TextStyle(color=graph.style.color, font_size=self.viewport.ui_scale(18), bold=True))
+                self.renderer.draw_UI_line(ln, self.viewport.ui_scale(20), self.viewport.ui_scale(20), name, 
+                                           text_style=TextStyle(color=graph.style.color, font_size=self.viewport.ui_scale(18), bold=True))
                 ln += 1
 
     def run(self):
+        """General procedure for starting up the app.
+        Handles inputs, updates animations, draws graphs,
+        handles settings, moves dragged points, and runs until
+        an exit sequence is triggered."""
 
         self.prev_point = None
 

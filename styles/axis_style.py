@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 @dataclass
 class AxisStyle(Style):
 
+    show_ui: bool = False
+    
     thickness: int = 2
 
     draw_x: bool = True

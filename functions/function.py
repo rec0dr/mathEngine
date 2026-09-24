@@ -4,12 +4,12 @@ from .curve import Curve
 from styles.curve_style import CurveStyle
 
 class Operation(Enum):
-    ADD = "+"
-    SUBTRACT = "-"
-    MULTIPLY = "*"
-    DIVIDE = "/"
-    POWER = "^"
-    ABS = "|"
+    ADD         = "+"
+    SUBTRACT    = "-"
+    MULTIPLY    = "*"
+    DIVIDE      = "/"
+    POWER       = "^"
+    ABS         = "|"
 
 # Function combination logic
 

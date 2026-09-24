@@ -107,3 +107,11 @@ class Analyzer:
     def derivative(self, f: Curve):
         return f.derivative()
 
+    def derivative_x(self, f: Function, x: float, acc: float = 0.000001):
+        x1 = x - acc
+        y1 = f.evaluate(x1)
+        x2 = x + acc
+        y2 = f.evaluate(x2)
+
+        return (y2 - y1) / (x2 - x1)
+

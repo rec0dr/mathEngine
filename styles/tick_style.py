@@ -1,12 +1,10 @@
 from dataclasses import dataclass
+from .style import Style
 from .text_style import TextStyle
 
 @dataclass
-class TickStyle:
-    color: tuple = (255,255,255)
-    opacity: int = 255
-    visible: bool = True
-
+class TickStyle(Style):
+    show_ui: bool = False
     factor_x: int = 10
     factor_y: int = 10
 

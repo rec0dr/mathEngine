@@ -38,6 +38,8 @@ class Label:
 
     @property
     def text(self):
+        if callable(self._text):
+            return self._text()
         return self._text
 
     @text.setter
@@ -54,3 +56,6 @@ class Label:
         self._x, self._y = value
         if self._auto_text:
             self._text = f"({self._x}, {self._y})"
+
+    def __str__(self):
+        return f"{self._x, self._y}"

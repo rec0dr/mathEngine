@@ -3,13 +3,18 @@ from dataclasses import dataclass
 
 @dataclass
 class GridStyle(Style):
-    major_color: tuple = (255,255,255)
-    major_opacity: int = 255
-    major_spacing: float = 1
+    color: tuple = (255,255,255)
+    opacity: int = 100
+    visible: bool = True
 
+    show_ui: bool = False
+    name: str = ""
+    
+    thickness: int = 2
     minor_color: tuple = (255,255,255)
-    minor_opacity: int = 128
-    minor_spacing: int = 0.2
+    minor_opacity: int = 50
+    minor_thickness: int = 1
+    minor_visible: bool = True
 
     
 

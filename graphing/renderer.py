@@ -18,58 +18,67 @@ from objects.label import Label
 from objects.circle import Circle
 
 from styles.style import Style
+from styles.axis_label import AxisLabel
+from styles.axis_style import AxisStyle
 from styles.circle_style import CircleStyle
 from styles.curve_style import CurveStyle
-from styles.point_style import PointStyle
+from styles.grid_style import GridStyle
 from styles.line_segment_style import LineSegmentStyle
-from styles.axis_style import AxisStyle
+from styles.point_style import PointStyle
 from styles.text_style import TextStyle
 from styles.tick_style import TickStyle
-from styles.axis_label import AxisLabel
 
 class Renderer:
     def __init__(self, screen: pygame.Surface, viewport: Viewport, graph_manager: GraphManager, animation_manager: AnimationManager, camera_controller: CameraController, fps=60):
-        self.screen = screen
-        self.viewport = viewport
-        self.graph_manager = graph_manager
-        self.animation_manager = animation_manager
-        self.camera_controller = camera_controller
-        self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
-        self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
-        self.overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        self.screen                     = screen
+        self.viewport                   = viewport
+        self.graph_manager              = graph_manager
+        self.animation_manager          = animation_manager
+        self.camera_controller          = camera_controller
+        self.boundL, self.boundU        = self.viewport.screen_to_graph(0, 0)
+        self.boundR, self.boundD        = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
+        self.overlay                    = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 
-        self.tick_font = pygame.font.SysFont(None, self.viewport.ui_scale(18))
-        self.tick_font2 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
+        self.tick_font                  = pygame.font.SysFont(None, self.viewport.ui_scale(18))
+        self.tick_font2                 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
 
-        self.fps = fps
+        self.fps                        = fps
 
         # Defaults
-        self.default_BackgroundColor = (0,0,0)
+        self.default_BackgroundColor    = (0,0,0)
 
-        self.default_CurveStyle = CurveStyle((255,255,255), 255, True, 2)
-        self.default_PointStyle = PointStyle((255,0,0), 255, True, True, 5, 0, True)
-        self.default_LineSegmentStyle = LineSegmentStyle((255, 255, 255), 255, True, True, False, None)
-        self.default_CircleStyle = CircleStyle()
+        self.default_CurveStyle         = CurveStyle((255,255,255), 255, True, False, "", 2)
+        self.default_PointStyle         = PointStyle((255,0,0), 255, True, False, "", True, 5, 0, True)
+        self.default_LineSegmentStyle   = LineSegmentStyle()
+        self.default_CircleStyle        = CircleStyle()
 
-        self.default_AxisLabelX = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
-        self.default_AxisLabelY = AxisLabel("y", TextStyle((255,0,0), font_size=self.viewport.ui_scale(18)))
-        self.default_AxisStyle = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
+        self.default_AxisLabelX         = AxisLabel("x", TextStyle((0,0,255), font_size=self.viewport.ui_scale(18)))
+        self.default_AxisLabelY         = AxisLabel("y", TextStyle((255,0,0), font_size=self.viewport.ui_scale(18)))
+        self.default_AxisStyle          = AxisStyle((255,255,255), origin_radius=self.viewport.ui_scale(5), arrow_dims=(self.viewport.ui_scale(25), self.viewport.ui_scale(10)), label_negatives=True, label_x = self.default_AxisLabelX, label_y = self.default_AxisLabelY)
 
-        self.default_PointTextStyle = TextStyle((0,0,255), font_size=self.viewport.ui_scale(20), italic=True, y_offset = -10)
-        self.default_UITextStyle = TextStyle((255, 255, 255), font_size=self.viewport.ui_scale(18), bold=True)
+        self.default_GridStyle          = GridStyle()
 
-        self.default_MajorTickStyle = TickStyle((255,255,255), 255, True, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
-        self.default_MinorTickStyle = TickStyle((255,255,255), 128, True, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
+        self.default_PointTextStyle     = TextStyle((0,0,255), font_size=self.viewport.ui_scale(20), italic=True, y_offset = -10)
+        self.default_UITextStyle        = TextStyle((255, 255, 255), font_size=self.viewport.ui_scale(18), bold=True)
+
+        self.default_MajorTickStyle     = TickStyle((255,255,255), 255, True, False, "", 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
+        self.default_MinorTickStyle     = TickStyle((255,255,255), 128, True, False, "", 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
 
     def clear(self):
+        """Standard clearing procedure. Clears the screen and fills the overlay in case of custom opacities."""
+
         self.screen.fill(self.default_BackgroundColor)
         self.overlay.fill((*self.default_BackgroundColor, 0))
 
     def update_bounds(self):
+        """Checks the current camera status to update the camera bounds (grid coords)."""
+
         self.boundL, self.boundU = self.viewport.screen_to_graph(0, 0)
         self.boundR, self.boundD = self.viewport.screen_to_graph(self.viewport.width, self.viewport.height)
 
     def draw_line(self, x1, y1, x2, y2, style):
+        """Standard procedure for drawing a line (grid coords)."""
+
         p1 = self.viewport.graph_to_screen(x1, y1)
         p2 = self.viewport.graph_to_screen(x2, y2)
 
@@ -77,6 +86,8 @@ class Renderer:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), p1, p2, int(style.thickness))
     
     def rotate(self, vx, vy, angle):
+        """Uses standard rotation matrix to rotate any point by any angle."""
+
         c = math.cos(angle)
         s = math.sin(angle)
         return (
@@ -85,10 +96,13 @@ class Renderer:
         )
         
     def draw_line_px(self, x1, y1, x2, y2, style):
+        """Standard procedure for drawing a line. (screen px)"""
+
         if style.visible:
             pygame.draw.line(self.overlay, (*style.color, style.opacity), (x1, y1), (x2,y2), style.thickness)
     
     def draw_text_px(self, x=None, y=None, txt="", text_style: TextStyle = None, xLeft=None, xRight=None, yBot=None, yTop=None):
+        
         if text_style is None:
             text_style = TextStyle((255,255,255), font_size=self.viewport.ui_scale(15))
         if text_style.visible:
@@ -115,8 +129,6 @@ class Renderer:
             
             self.screen.blit(text, text_rect)
 
-
-    
     def draw_axes(self, axis_style: AxisStyle = None):
         if axis_style is None:
             axis_style = self.default_AxisStyle
@@ -186,11 +198,13 @@ class Renderer:
         self.draw_line(tip_x, tip_y, left_x, left_y, style)
         self.draw_line(tip_x, tip_y, right_x, right_y, style)
     
-    def draw_ticks(self, tick_style: TickStyle = None, tick_style2: TickStyle = None):
+    def draw_grid(self, tick_style: TickStyle = None, tick_style2: TickStyle = None, grid_style: GridStyle = None):
         if tick_style is None:
             tick_style = self.default_MajorTickStyle
         if tick_style2 is None:
             tick_style2 = self.default_MinorTickStyle
+        if grid_style is None:
+            grid_style = self.default_GridStyle
         
         major_height_px = 32
         minor_height_px = 8
@@ -216,10 +230,6 @@ class Renderer:
         minor_heightX = minor_height_px / self.viewport.ppu_x
         minor_heightY = minor_height_px / self.viewport.ppu_y
 
-
-
-
-
         ppu_x = self.viewport.ppu_x
         ppu_y = self.viewport.ppu_y
 
@@ -244,19 +254,23 @@ class Renderer:
 
                 if i % every == 0:
                     if tick_style.visible:
+                        if grid_style.visible:
+                            self.draw_line(x, self.boundD, x, self.boundU, style=CurveStyle(color=(grid_style.color), opacity=grid_style.opacity, thickness=grid_style.thickness))
                         self.draw_line(x, major_heightX, x, -major_heightX, CurveStyle(color=(tick_style.color),opacity=tick_style.opacity, thickness=tick_style.thickness))
 
                         if tick_style.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
-                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", text_style=tick_style.label_style)
+                            self.draw_text_px(x = screen_x, yTop = screen_y + (ppu_y * major_heightX * 1.1), txt=f"{x:g}", text_style=tick_style.label_style)
                     
                 else:
                     if tick_style2.visible:
+                        if grid_style.minor_visible:
+                            self.draw_line(x, self.boundD, x, self.boundU, style=CurveStyle(color=(grid_style.minor_color), opacity=grid_style.minor_opacity, thickness=grid_style.minor_thickness))
                         self.draw_line(x, minor_heightX, x, -minor_heightX, CurveStyle(color=(tick_style2.color),opacity=tick_style2.opacity, thickness=tick_style2.thickness))
 
                         if tick_style2.labeled:
                             screen_x, screen_y = self.viewport.graph_to_screen(x, 0)
-                            self.draw_text_px(x=screen_x, yTop = screen_y + (ppu_y * minor_heightX * 1.1), txt=f"{x:g}", text_style=tick_style2.label_style)
+                            self.draw_text_px(x = screen_x, yTop = screen_y + (ppu_y * minor_heightX * 1.1), txt=f"{x:g}", text_style=tick_style2.label_style)
         
             first = math.floor(self.boundD / minor_distY)
             last = math.ceil(self.boundU / minor_distY)
@@ -270,6 +284,8 @@ class Renderer:
 
                 if i % every == 0:
                     if tick_style.visible:
+                        if grid_style.visible:
+                            self.draw_line(self.boundL, y, self.boundR, y, style=CurveStyle(color=(grid_style.color), opacity=grid_style.opacity, thickness=grid_style.thickness))
                         self.draw_line(major_heightY, y, -major_heightY, y, CurveStyle(color=(tick_style.color),opacity=tick_style.opacity, thickness=tick_style.thickness))
 
                         if tick_style.labeled:
@@ -278,6 +294,8 @@ class Renderer:
 
                 else:
                     if tick_style2.visible:
+                        if grid_style.minor_visible:
+                            self.draw_line(self.boundL, y, self.boundR, y, style=CurveStyle(color=(grid_style.minor_color), opacity=grid_style.minor_opacity, thickness=grid_style.minor_thickness))
                         self.draw_line(minor_heightY, y, -minor_heightY, y, CurveStyle(color=(tick_style2.color),opacity=tick_style2.opacity, thickness=tick_style2.thickness))
 
                         if tick_style2.labeled:
@@ -454,6 +472,8 @@ class Renderer:
             self.draw_text_px(xRight = self.viewport.width - x_left, y = self.viewport.height - y_center, txt = text, text_style = text_style)
 
     def draw_def_UI(self, text_style: TextStyle = None):
+        """Draws the default UI text with hardcoded stats."""
+
         x_margin = self.viewport.ui_scale(20)
         y_margin = self.viewport.ui_scale(20)
         self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", text_style=text_style)

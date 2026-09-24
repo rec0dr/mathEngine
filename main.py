@@ -1,34 +1,28 @@
-import math
-import random
-
-from anim.__init__ import *
-from functions.__init__ import *
-from styles.__init__ import *
-from objects.__init__ import *
-from graphing.__init__ import *
+from helper import *
 
 width, height = (1000, 1000)
 scaleX, scaleY = (10,10)
 
 app = GraphApp(width, height, scaleX, scaleY, fps=90, pan_sensitivity=100, zoom_sensitivity=100, fixed_center = None)
+app.renderer.default_GridStyle.color = GREEN
+app.renderer.default_GridStyle.minor_color = RED
+app.renderer.default_GridStyle.minor_visible = False
 
-def bezier(p0, p1, p2, p3, p4):
-    t0 = ((1 - X) ** 4) * p0
-    t1 = ((1 - X) ** 3) * X * p1
-    t2 = ((1 - X) ** 2) * (X**2) * p2
-    t3 = ((1 - X)) * (X**3) * p3
-    t4 = (X**4) * p4
-    return t0 + t1 + t2 + t3 + t4
+func = (X**3) / 20
+app.add_object(func, color=BLUE)
+trace = TracedPoint(func, -10)
+app.add_object(trace, color=RED, radius_px=5, draggable=True)
+# app.add_object(Label(3, 3, text=lambda:f"{trace.parameter:.3f} -> {app.analyzer.derivative_x(func, trace.parameter):.3f}"), font_size=36)
 
-x_curve = SIN(X) - 5
-app.add_object(x_curve, name="start", color=RED)
-traced_pt = TracedPoint(x_curve, 0)
-#app.add_animation(traced_pt, "parameter", 20, 30, EaseType.LINEAR)
-app.add_object(traced_pt, name="start", color=RED, draggable=True)
-other_pt = TracedPoint(X**2, Value(lambda: traced_pt.y + 5))
-app.add_object(X**2, name="result", color=BLUE)
-app.add_object(other_pt, radius_px=8, color=BLUE, name="result")
-mod_pt = TracedPoint(X**2, 2 * Value(lambda: traced_pt.y + 5))
-app.add_object(mod_pt, radius_px=8, color=PURPLE, name="mod_result")
-app.add_object(LineSegment(other_pt, mod_pt))
+def obj_deriv(dx1, dx2):
+    dx3 = (dx1 + dx2) / 2
+    m = Value(lambda: app.analyzer.derivative_x(func, trace.parameter+dx3))
+    b = Value(lambda: -(app.analyzer.derivative_x(func, trace.parameter+dx3)*(trace.parameter+dx3))+(func.evaluate(trace.parameter+dx3)))
+    new_func = m*X + b
+    app.add_object(LineSegment((Value(lambda: trace.parameter+dx1), Value(lambda: new_func.evaluate(trace.parameter+dx1))), (Value(lambda: trace.parameter+dx2), Value(lambda: new_func.evaluate(trace.parameter+dx2)))), show_ends=False)
+
+for i in range(5):
+    obj_deriv(i-0.5, i+0.5)
+
+app.add_animation(trace, "parameter", 5, 30, EaseType.SIN_IN_OUT)
 app.run()
