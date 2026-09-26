@@ -22,7 +22,7 @@ class Point:
 
     @property
     def pos(self): 
-        return (self.evaluate(self._x), self.evaluate(self._y))
+        return (self.x, self.y)
 
     @property
     def x(self):
@@ -30,7 +30,7 @@ class Point:
 
     @x.setter
     def x(self, value):
-        self._x = value
+        self._x = Value(value)
 
     @property
     def y(self):
@@ -38,7 +38,7 @@ class Point:
 
     @y.setter
     def y(self, value):
-        self._y = value
+        self._y = Value(value)
 
     @pos.setter
     def pos(self, tuple):

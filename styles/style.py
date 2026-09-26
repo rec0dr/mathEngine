@@ -7,3 +7,4 @@ class Style:
     visible: bool = True
     show_ui: bool = True
     name: str = ""
+    show_type: bool = True

@@ -104,10 +104,9 @@ class Analyzer:
 
         return minX, f.evaluate(minX)
 
-    def derivative(self, f: Curve):
-        return f.derivative()
-
-    def derivative_x(self, f: Function, x: float, acc: float = 0.000001):
+    def derivative_x(self, f: Function, x, acc: float = 0.000001):
+        if isinstance(x, Value):
+            x = x.evaluate(0)
         x1 = x - acc
         y1 = f.evaluate(x1)
         x2 = x + acc

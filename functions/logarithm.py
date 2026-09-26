@@ -15,26 +15,15 @@ class Logarithm(Function):
             self.arg = Value(self.arg)
 
         self._custom_eqString = eqString
-    
-    def derivative(self):
-        # Derivative of log_b(f(x)) = f'(x) / (f(x) * ln(b))
-        return Combination(
-            self.arg.derivative(),
-            Operation.DIVIDE,
-            Combination(
-                Combination(self.arg, Operation.MULTIPLY, Value(math.log(self.base))),
-                Operation.MULTIPLY,
-                self
-            )
-        )
         
     def __str__(self):
         if self._custom_eqString is not None:
             return self._custom_eqString
-    
-        res = f"log({str(self.base)})({str(self.arg)})"
-        
-        return res
+
+        if round(self.base.evaluate(),3) == 2.718:
+            return f"ln({str(self.arg)})"
+        else:
+            return f"log({str(self.base)})({str(self.arg)})"
         
     def evaluate(self, x):
         argument = self.arg.evaluate(x)

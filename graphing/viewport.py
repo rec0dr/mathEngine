@@ -25,6 +25,7 @@ class Viewport:
     @property
     def ppu_x(self):
         return (self.width / 2) / self.scale_x
+    
     @property
     def ppu_y(self):
         return (self.height / 2) / self.scale_y
@@ -34,13 +35,21 @@ class Viewport:
         return int(s * (self.width / DEFAULT_WIDTH))
 
     def graph_to_screen(self,x,y):
+        if x is None or y is None:
+            return None
+        
         screen_x = self.origin_x + self.ppu_x * x
         screen_y = self.origin_y - self.ppu_y * y
+        
         return (screen_x, screen_y)
     
     def screen_to_graph(self,x,y):
+        if x is None or y is None:
+            return None
+        
         graph_x = (x - self.origin_x) / self.ppu_x
         graph_y = (self.origin_y - y) / self.ppu_y
+        
         return (graph_x, graph_y)
     
     def zoom_by(self, scaleX, scaleY=None):

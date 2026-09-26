@@ -16,8 +16,3 @@ class Curve:
     def inverse(self, tMin, tMax):
         """Return the inverse of the function."""
         raise NotImplementedError
-
-    def derivative(self):
-        """Return the derivative of the function."""
-        raise NotImplementedError
-    

@@ -2,7 +2,7 @@ from .style import Style
 from .axis_style import AxisStyle
 from .curve_style import CurveStyle
 from .grid_style import GridStyle
-from .point_style import PointStyle
+from .point_style import PointStyle, LockType
 from .text_style import TextStyle
 from .axis_label import AxisLabel
 from .line_segment_style import LineSegmentStyle

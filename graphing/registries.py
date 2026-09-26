@@ -5,26 +5,26 @@ from functions.function import Function
 from functions.curve import Curve
 
 DRAW_MAP = {
-    Point: "draw_point",
-    Curve: "draw_curve",
-    Label: "draw_label",
-    LineSegment: "draw_line_segment",
-    Circle: "draw_circle"
+    Point:          "draw_point",
+    Curve:          "draw_curve",
+    Label:          "draw_label",
+    LineSegment:    "draw_line_segment",
+    Circle:         "draw_circle"
 }
 
 NAME_MAP = {
-    Point: "Point",
-    Parametric: "Parametric",
-    Function: "Function",
-    Label: "Label",
-    LineSegment: "Line Segment",
-    Circle: "Circle"
+    Point:          "Point",
+    Parametric:     "Parametric",
+    Function:       "Function",
+    Label:          "Label",
+    LineSegment:    "Line Segment",
+    Circle:         "Circle"
 }
 
 STYLE_MAP = {
-    Point: PointStyle,
-    Curve: CurveStyle,
-    Label: TextStyle,
-    LineSegment: LineSegmentStyle,
-    Circle: CircleStyle
+    Point:          PointStyle,
+    Curve:          CurveStyle,
+    Label:          TextStyle,
+    LineSegment:    LineSegmentStyle,
+    Circle:         CircleStyle
 }

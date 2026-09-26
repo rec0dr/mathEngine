@@ -55,14 +55,14 @@ BLACK   = (0,0,0)
 GRAY    = (128,128,128)
 
 # Thicknesses
-THIN = 2
-MED = 4
-THICK = 6
+THIN    = 2
+MED     = 4
+THICK   = 6
 
 # Numbers
-PI = math.pi
-E = math.e
-π = PI
+PI      = math.pi
+E       = math.e
+π       = PI
 
 # Parametrics
 

@@ -11,7 +11,8 @@ from .registries import STYLE_MAP, NAME_MAP
 
 from anim.animation import Animation, EaseType
 
-from styles.point_style import PointStyle
+from styles.style import Style
+from styles.point_style import PointStyle, LockType
 from styles.curve_style import CurveStyle
 from styles.text_style import TextStyle
 from styles.line_segment_style import LineSegmentStyle
@@ -210,55 +211,68 @@ class GraphApp:
                         if not any_hover:
                             if isinstance(drawable, TracedPoint):
                                 mouse_x = self.viewport.screen_to_graph(*mouse_pos)[0]
-                                drawable.parameter = mouse_x
+                                if style.lock_type == LockType.FREE:
+                                    drawable.parameter = mouse_x
                             else:
-                                drawable.pos = self.viewport.screen_to_graph(*mouse_pos)
-                            any_hover = True
+                                mouse = self.viewport.screen_to_graph(*mouse_pos)
+                                if style.lock_type == LockType.FREE:
+                                    drawable.pos = mouse
+                                elif style.lock_type == LockType.X:
+                                    drawable.y = mouse[1]
+                                elif style.lock_type == LockType.Y:
+                                    drawable.x = mouse[0]
+                            
                         self.camera_controller.locked = True
                     else:
                         self.camera_controller.locked = False
+                    any_hover = True
+
                 point_pos = self.viewport.graph_to_screen(*drawable.pos)
+                flag_x = (abs(mouse_pos[0] - point_pos[0]) <= style.radius_px)
+                flag_y = (abs(mouse_pos[1] - point_pos[1]) <= style.radius_px)
+                #print(flag_x, flag_y)
 
                 if isinstance(drawable, TracedPoint):
                     if style.hovered:
-                        if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px:
-                            style.hovered = True
-                        else:
-                            style.hovered = False
+                        style.hovered = flag_x
                     else:
-                        if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px and abs(mouse_pos[1] - point_pos[1]) <= style.radius_px:
-                            style.hovered = True
-                        else:
-                            style.hovered = False
+                        style.hovered = (flag_x and flag_y)
                 else:
-                    if abs(mouse_pos[0] - point_pos[0]) <= style.radius_px and abs(mouse_pos[1] - point_pos[1]) <= style.radius_px:
-                        style.hovered = True
+                    if style.hovered:
+                        if style.lock_type == LockType.X:
+                            style.hovered = flag_y
+                        elif style.lock_type == LockType.Y:
+                            style.hovered = flag_x
+                        else:
+                            style.hovered = (flag_x and flag_y)
                     else:
-                        style.hovered = False
+                        style.hovered = (flag_x and flag_y)
                 
-                print(style.hovered)
+                #print(style.hovered)
 
     def draw_UI(self, dt):
         """Runs every frame to draw the UI - default and user-created."""
 
         self.renderer.fps = round(self.clock.get_fps(), 3)
-        self.renderer.draw_def_UI()
-        ln = 4
+        self.renderer.clear_UI()
 
         for graph in self.graph_manager.graph_objects:
-            if graph.style.show_ui:
-                for cls in type(graph.drawable).__mro__:
-                    if cls in NAME_MAP:
-                        graph_name = NAME_MAP[cls]
-                        break
-                name = f"{graph_name}"
-                if graph.style.name != "":
-                    name = name + " "
-                name = name + f"{graph.style.name}: {str(graph.drawable)}"
+            if isinstance(graph.style, Style):
+                if graph.style.show_ui:
+                    name = ""
+                    if graph.style.show_type:
+                        for cls in type(graph.drawable).__mro__:
+                            if cls in NAME_MAP:
+                                graph_name = NAME_MAP[cls]
+                                break
+                        name = f"{graph_name}"
+                        if graph.style.name != "":
+                            name = name + " "
+                    name = name + f"{graph.style.name}: {str(graph.drawable)}"
 
-                self.renderer.draw_UI_line(ln, self.viewport.ui_scale(20), self.viewport.ui_scale(20), name, 
-                                           text_style=TextStyle(color=graph.style.color, font_size=self.viewport.ui_scale(18), bold=True))
-                ln += 1
+                    self.renderer.add_UI_line(None, None, name, None, "NW")
+
+        self.renderer.draw_UI()
 
     def run(self):
         """General procedure for starting up the app.

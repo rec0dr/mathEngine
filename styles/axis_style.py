@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 class AxisStyle(Style):
 
     show_ui: bool = False
+    name: str = ""
     
     thickness: int = 2
 

@@ -43,12 +43,13 @@ class Renderer:
         self.tick_font2                 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
 
         self.fps                        = fps
+        self.ui_space                   = {"NW": [], "NE": [], "SW": [], "SE": []}
 
         # Defaults
         self.default_BackgroundColor    = (0,0,0)
 
-        self.default_CurveStyle         = CurveStyle((255,255,255), 255, True, False, "", 2)
-        self.default_PointStyle         = PointStyle((255,0,0), 255, True, False, "", True, 5, 0, True)
+        self.default_CurveStyle         = CurveStyle((255,255,255), 255, True, False, "", False, 2)
+        self.default_PointStyle         = PointStyle((255,0,0), 255, True, False, "", False, True, 5, 0, True)
         self.default_LineSegmentStyle   = LineSegmentStyle()
         self.default_CircleStyle        = CircleStyle()
 
@@ -61,8 +62,8 @@ class Renderer:
         self.default_PointTextStyle     = TextStyle((0,0,255), font_size=self.viewport.ui_scale(20), italic=True, y_offset = -10)
         self.default_UITextStyle        = TextStyle((255, 255, 255), font_size=self.viewport.ui_scale(18), bold=True)
 
-        self.default_MajorTickStyle     = TickStyle((255,255,255), 255, True, False, "", 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
-        self.default_MinorTickStyle     = TickStyle((255,255,255), 128, True, False, "", 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
+        self.default_MajorTickStyle     = TickStyle((255,255,255), 255, True, False, "", False, 10, 10, 1, 1, 4, True, TextStyle((255,255,255), font_size=self.viewport.ui_scale(16)))
+        self.default_MinorTickStyle     = TickStyle((255,255,255), 128, True, False, "", False, 10, 10, 0.1, 0.1, 2, False, TextStyle((255,255,255), font_size=self.viewport.ui_scale(13)))
 
     def clear(self):
         """Standard clearing procedure. Clears the screen and fills the overlay in case of custom opacities."""
@@ -455,12 +456,12 @@ class Renderer:
 
                 self.draw_arrowhead(x1, y1, dx, dy, width, length, curve_style)
     
-    def draw_UI_line(self, lineNum, marginX, marginY, txt, text_style: TextStyle = None, corner = "NW"):
+    def draw_UI_line(self, marginX, marginY, txt, text_style: TextStyle = None, corner = "NW", line = 0):
         if text_style is None:
             text_style = self.default_UITextStyle
         one_line_height = text_style.font_size
         x_left = marginX
-        y_center = marginY + (lineNum * one_line_height)
+        y_center = marginY + (line * one_line_height)
         text = txt
         if corner == "NW":
             self.draw_text_px(xLeft = x_left, y = y_center, txt = text, text_style = text_style)
@@ -471,13 +472,34 @@ class Renderer:
         elif corner == "SE":
             self.draw_text_px(xRight = self.viewport.width - x_left, y = self.viewport.height - y_center, txt = text, text_style = text_style)
 
-    def draw_def_UI(self, text_style: TextStyle = None):
-        """Draws the default UI text with hardcoded stats."""
+    def draw_UI(self):
+        for corner_type in self.ui_space:
+            for index, line in enumerate(self.ui_space[corner_type]):
+                marginX, marginY, txt, text_style = line
+                if marginX is None:
+                    marginX = self.viewport.ui_scale(20)
+                if marginY is None:
+                    marginY = self.viewport.ui_scale(20)
+                
+                self.draw_UI_line(marginX, marginY, txt, text_style, corner_type, index)
 
+    def add_UI_line(self, marginX: float, marginY: float, txt: str, text_style: TextStyle, corner: str):
+        if corner.upper() in ["NW", "NE", "SW", "SE"]:
+            self.ui_space[corner].append([marginX, marginY, txt, text_style])
+        else:
+            raise TypeError
+
+    def clear_UI(self):
+        text_style = None
         x_margin = self.viewport.ui_scale(20)
         y_margin = self.viewport.ui_scale(20)
-        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", text_style=text_style)
-        self.draw_UI_line(1, marginX = x_margin, marginY = y_margin, txt=f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", text_style=text_style)
-        self.draw_UI_line(2, marginX = x_margin, marginY = y_margin, txt=f"Move Speed: {self.camera_controller.speed:g}", text_style=text_style)
-        self.draw_UI_line(0, marginX = x_margin, marginY = y_margin, txt=f"FPS: {self.fps}", text_style = text_style, corner="NE")
+        self.ui_space["NW"] = [[x_margin, y_margin, f"Scale: ({self.viewport.scale_x:g}, {self.viewport.scale_y:g})", text_style],
+                                [x_margin, y_margin, f"Center: ({self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[0]:g}, {self.viewport.screen_to_graph(self.viewport.width/2, self.viewport.height/2)[1]:g})", text_style],
+                                [x_margin, y_margin, f"Move Speed: {self.camera_controller.speed:g}", text_style]]
+        self.ui_space["NE"] = [[x_margin, y_margin, f"FPS: {self.fps}", text_style]]
+
+        self.ui_space["SW"] = []
+        self.ui_space["SE"] = []
+        
+
 

@@ -82,9 +82,6 @@ class Function(Curve):
     
     def parameter_interval(self, renderer):
         return renderer.boundL, renderer.boundR
-
-    def derivative(self):
-        raise NotImplementedError("Derivative not implemented for this function.")
     
     # Framework for subclasses
     
@@ -141,58 +138,7 @@ class Combination(Function):
 
         # print(f"{x:g}", result)
         return result
-
-    def derivative(self):
-        if self.operation == Operation.ADD:
-            return Combination(self.left.derivative(), Operation.ADD, self.right.derivative())
-        elif self.operation == Operation.SUBTRACT:
-            return Combination(self.left.derivative(), Operation.SUBTRACT, self.right.derivative())
-        elif self.operation == Operation.MULTIPLY:
-            if isinstance(self.left, Value):
-                return Combination(self.left, Operation.MULTIPLY, self.right.derivative())
-
-            if isinstance(self.right, Value):
-                # print("Left:",self.left, self.left.derivative(), isinstance(self.left.right, Value))
-                return Combination(self.right, Operation.MULTIPLY, self.left.derivative())
-            
-            return Combination(
-                Combination(self.left.derivative(), Operation.MULTIPLY, self.right),
-                Operation.ADD,
-                Combination(self.left, Operation.MULTIPLY, self.right.derivative())
-            )
-        elif self.operation == Operation.DIVIDE:
-            numerator = Combination(
-                Combination(self.left.derivative(), Operation.MULTIPLY, self.right),
-                Operation.SUBTRACT,
-                Combination(self.left, Operation.MULTIPLY, self.right.derivative())
-            )
-            denominator = Combination(self.right, Operation.POWER, Value(2))
-            return Combination(numerator, Operation.DIVIDE, denominator)
         
-        elif self.operation == Operation.POWER:
-            # Implement power rule for derivatives
-            if isinstance(self.left, Value) and isinstance(self.right, Value):
-                #print("")
-                return Value(0)
-            
-            if isinstance(self.left, Value):
-                #print("")
-                return Combination(Combination(math.log(self.left.evaluate(0)), Operation.MULTIPLY, Combination(self.left.evaluate(0), Operation.POWER, self.right)),
-                Operation.MULTIPLY,
-                self.right.derivative())
-
-            if isinstance(self.right, Value):
-                #print("")
-                return Combination(Combination(Combination(self.left, Operation.POWER, self.right.evaluate(0) - 1), Operation.MULTIPLY, self.left.derivative()), Operation.MULTIPLY, self.right.evaluate(0))
-
-            # Fix later
-            from .logarithm import Logarithm
-            a1 = Combination(self.left, Operation.POWER, self.right)
-            a2 = Combination(self.right.derivative(), Operation.MULTIPLY, Logarithm(arg=self.left))
-            a3 = Combination(self.right, Operation.MULTIPLY, Combination(self.left.derivative(), Operation.DIVIDE, self.left))
-            return Combination(a1, Operation.MULTIPLY, Combination(a2, Operation.ADD, a3))
-        
-
     def __str__(self):
         string = ""
         if self.operation == Operation.ADD:
@@ -325,21 +271,22 @@ class Combination(Function):
 class Value(Function):
     def __init__(self, value):
         super().__init__()
-        self.value = value
+        self._value = value
 
-    def derivative(self):
-        return Value(0)
+    @property
+    def value(self):
+        if callable(self._value):
+            return self._value()
+        return self._value
+
+    @value.setter
+    def value(self, new):
+        self._value = new
 
     def __str__(self):
-        if callable(self.value):
-            return f"{self.value():.3f}"
         return f"{self.value:.3f}"
 
-    def evaluate(self, x):
-        if callable(self.value):
-            return self.value()
-        if isinstance(self.value, Function):
-            return self.value.evaluate(x)
+    def evaluate(self, x=0):
         return self.value
 
 def dynamic(value):
@@ -351,9 +298,7 @@ class Variable(Function):
     def __init__(self, name):
         super().__init__()
         self.name = name
-    
-    def derivative(self):
-        return Value(1)
+
     
     def __str__(self):
         return f"{self.name}"

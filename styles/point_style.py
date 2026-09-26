@@ -1,6 +1,13 @@
 from .style import Style
 from .text_style import TextStyle
 from dataclasses import dataclass, field
+from enum import Enum
+
+class LockType(Enum):
+    X       = "X"
+    Y       = "Y"
+    BOTH    = "X,Y"
+    FREE    = ""
 
 @dataclass
 class PointStyle(Style):
@@ -11,4 +18,5 @@ class PointStyle(Style):
     label_style: TextStyle = None
 
     draggable: bool = False
+    lock_type: str = LockType.FREE
     hovered: bool = False
