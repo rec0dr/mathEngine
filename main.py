@@ -9,18 +9,18 @@ app.renderer.default_GridStyle.minor_color = RED
 app.renderer.default_GridStyle.minor_visible = True
 
 a = Point(0,0)
-app.add_object(a, color=BLUE, radius_px=5, draggable=True)
-r = 1
+app.add_object(a, color=BLUE, radius_px=5, draggable=True, labeled=True)
 tps = []
 def add_planet():
-    global r, tps
+    global tps
+    r = random.random()*10
+    r2 = random.random()*10
     color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-    circle = PARAMETRIC_CIRCLE(r, (Value(lambda: a.x), Value(lambda: a.y)))
+    circle = PARAMETRIC_ELLIPSE(r, r2, (Value(lambda: a.x), Value(lambda: a.y)))
     app.add_object(circle, show_ui=False, color=color)
     tps.append(TracedPoint(circle,0))
     app.add_object(tps[-1], show_ui=True, show_type=False, name=f"Planet {len(tps)-1}", color=color, radius_px=5)
     app.add_animation(tps[-1], "parameter", 2*PI, random.random()*20, two_way=False)
-    r += 1
 
 def switch_minor():
     app.renderer.default_GridStyle.minor_visible = not app.renderer.default_GridStyle.minor_visible
