@@ -57,6 +57,7 @@ class GraphApp:
         self.zoom_sensitivity = zoom_sensitivity
         self.fps = fps
         self.slide_multi = 1
+        self.key_binds = {}
 
         self.graphObjects = []
 
@@ -167,6 +168,11 @@ class GraphApp:
                     self.prev_point = cur_point
                 elif event.key == pygame.K_c:
                     self.graph_manager.graph_objects = []
+                    self.camera_controller.locked = False
+                    
+                elif event.key in self.key_binds:
+                    if callable(self.key_binds[event.key]):
+                        self.key_binds[event.key]()
 
     def handle_inputs(self, dt):
         """General function for handling all inputs, camera and non-camera, along with exit checks."""
@@ -198,7 +204,14 @@ class GraphApp:
         """Moves draggable points each frame via various checks and style customs."""
 
         mouse_pos = pygame.mouse.get_pos()
-        any_hover = False
+        click_count = 0
+        for object in self.graph_manager:
+            style = object.style
+            drawable = object.drawable
+            if isinstance(drawable, Point) and isinstance(style, PointStyle):
+                if style.hovered and pygame.mouse.get_pressed()[0]:
+                    click_count += 1
+                    
         for object in self.graph_manager:
             style = object.style
             drawable = object.drawable
@@ -208,7 +221,7 @@ class GraphApp:
                 
                 if style.hovered:
                     if pygame.mouse.get_pressed()[0]:
-                        if not any_hover:
+                        if click_count == 1:
                             if isinstance(drawable, TracedPoint):
                                 mouse_x = self.viewport.screen_to_graph(*mouse_pos)[0]
                                 if style.lock_type == LockType.FREE:
@@ -225,20 +238,22 @@ class GraphApp:
                         self.camera_controller.locked = True
                     else:
                         self.camera_controller.locked = False
-                    any_hover = True
+
+                #print(click_count)
 
                 point_pos = self.viewport.graph_to_screen(*drawable.pos)
                 flag_x = (abs(mouse_pos[0] - point_pos[0]) <= style.radius_px)
                 flag_y = (abs(mouse_pos[1] - point_pos[1]) <= style.radius_px)
+                flag_press = pygame.mouse.get_pressed()[0]
                 #print(flag_x, flag_y)
 
                 if isinstance(drawable, TracedPoint):
-                    if style.hovered:
+                    if style.hovered and flag_press:
                         style.hovered = flag_x
                     else:
                         style.hovered = (flag_x and flag_y)
                 else:
-                    if style.hovered:
+                    if style.hovered and flag_press:
                         if style.lock_type == LockType.X:
                             style.hovered = flag_y
                         elif style.lock_type == LockType.Y:

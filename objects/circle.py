@@ -14,7 +14,7 @@ class Circle:
             self._radius = Value(radius)
 
     def __str__(self):
-        return f"C: {self.center}, R: {self.radius}"
+        return f"C: ({self.center[0]:.3f}, {self.center[1]:.3f}), R: {self.radius:.3f}"
 
     def evaluate_point(self, point):
         return (point[0].evaluate(0), point[1].evaluate(0))

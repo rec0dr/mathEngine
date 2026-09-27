@@ -128,11 +128,6 @@ class CameraController:
                         self.camera_anims = self.animate_to((0, 0), (10, 10), duration=3, ease_type=EaseType.CUBIC_IN_OUT)
                     else:
                         self.camera_anims = self.animate_to((self.default_cx,self.default_cy),(self.default_sx, self.default_sy),duration=3, ease_type = EaseType.CUBIC_IN_OUT)
-
-                elif event.key == pygame.K_p:
-                    x = float(input("Center X: "))
-                    y = float(input("Center Y: "))
-                    self.animate_to((x,y), None, duration=5, ease_type = EaseType.CUBIC_IN_OUT)
     
     def handle_speed_change(self, events):
         keys = pygame.key.get_pressed()

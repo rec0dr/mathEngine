@@ -1,5 +1,6 @@
 import math
 import random
+import pygame
 
 from anim.__init__ import *
 from functions.__init__ import *
