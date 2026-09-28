@@ -135,6 +135,7 @@ class GraphApp:
         """Runs at the end of each frame. (Default procedures)"""
 
         self.screen.blit(self.renderer.overlay,(0,0))
+        self.draw_text()
         pygame.display.flip()
     
     def check_quit(self, events):
@@ -167,9 +168,9 @@ class GraphApp:
 
                     self.prev_point = cur_point
                 elif event.key == pygame.K_c:
-                    self.graph_manager.graph_objects = []
+                    self.graph_manager.clear()
                     self.camera_controller.locked = False
-                    
+
                 elif event.key in self.key_binds:
                     if callable(self.key_binds[event.key]):
                         self.key_binds[event.key]()
@@ -191,8 +192,9 @@ class GraphApp:
     def draw_objects(self):
         """Standard procedure for drawing all non-default objects in the app."""
 
-        for object in self.graph_manager:
-            self.renderer.draw_graph(object)
+        for layer in self.graph_manager.graph_objects:
+            for object in self.graph_manager.graph_objects[layer]:
+                self.renderer.draw_graph(object)
 
     def handle_settings(self):
         """Procedure for handling all custom settings."""
@@ -205,14 +207,14 @@ class GraphApp:
 
         mouse_pos = pygame.mouse.get_pos()
         click_count = 0
-        for object in self.graph_manager:
+        for object in self.graph_manager["Points"]:
             style = object.style
             drawable = object.drawable
             if isinstance(drawable, Point) and isinstance(style, PointStyle):
                 if style.hovered and pygame.mouse.get_pressed()[0]:
                     click_count += 1
                     
-        for object in self.graph_manager:
+        for object in self.graph_manager["Points"]:
             style = object.style
             drawable = object.drawable
             if isinstance(drawable, Point) and isinstance(style, PointStyle):
@@ -238,6 +240,8 @@ class GraphApp:
                         self.camera_controller.locked = True
                     else:
                         self.camera_controller.locked = False
+                else:
+                    pass
 
                 #print(click_count)
 
@@ -264,30 +268,39 @@ class GraphApp:
                         style.hovered = (flag_x and flag_y)
                 
                 #print(style.hovered)
+    
+    def draw_text(self):
+        self.draw_UI()
+        self.draw_labels()
 
-    def draw_UI(self, dt):
+    def draw_UI(self):
         """Runs every frame to draw the UI - default and user-created."""
 
         self.renderer.fps = round(self.clock.get_fps(), 3)
         self.renderer.clear_UI()
 
-        for graph in self.graph_manager.graph_objects:
-            if isinstance(graph.style, Style):
-                if graph.style.show_ui:
-                    name = ""
-                    if graph.style.show_type:
-                        for cls in type(graph.drawable).__mro__:
-                            if cls in NAME_MAP:
-                                graph_name = NAME_MAP[cls]
-                                break
-                        name = f"{graph_name}"
-                        if graph.style.name != "":
-                            name = name + " "
-                    name = name + f"{graph.style.name}: {str(graph.drawable)}"
+        for layer in self.graph_manager.graph_objects:
+            for graph in self.graph_manager.graph_objects[layer]:
+                if isinstance(graph.style, Style):
+                    if graph.style.show_ui:
+                        name = ""
+                        if graph.style.show_type:
+                            for cls in type(graph.drawable).__mro__:
+                                if cls in NAME_MAP:
+                                    graph_name = NAME_MAP[cls]
+                                    break
+                            name = f"{graph_name}"
+                            if graph.style.name != "":
+                                name = name + " "
+                        name = name + f"{graph.style.name}: {str(graph.drawable)}"
 
-                    self.renderer.add_UI_line(None, None, name, None, "NW")
+                        self.renderer.add_UI_line(None, None, name, None, "NW")
 
         self.renderer.draw_UI()
+
+    def draw_labels(self):
+        for label in self.graph_manager.labels:
+            self.renderer.draw_graph(label)
 
     def run(self):
         """General procedure for starting up the app.
@@ -308,7 +321,6 @@ class GraphApp:
             self.handle_settings()
             self.move_dragged()
             
-            self.draw_UI(dt)
             self.end_frame()
         pygame.quit()
     

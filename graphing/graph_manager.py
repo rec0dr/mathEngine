@@ -1,26 +1,48 @@
+from enum import Enum
+from functions.curve import Curve
+from objects.circle import Circle
+from objects.label import Label
+from objects.line_segment import LineSegment
+from objects.point import Point
 from .graph_object import GraphObject
-from functions.function import Function
 
 class GraphManager:
     def __init__(self):
-        self.graph_objects: list[GraphObject] = []
+        self.graph_objects = {"Curves": [], "Points": []}
+        self.labels = []
     
     def add(self, *objects: GraphObject):
         for obj in objects:
-            self.graph_objects.append(obj)
+            # Object layer handling
+            if isinstance(obj.drawable, (Curve, Circle, LineSegment)):
+                self.graph_objects["Curves"].append(obj)
+            elif isinstance(obj.drawable, Point):
+                self.graph_objects["Points"].append(obj)
+            elif isinstance(obj.drawable, Label):
+                self.labels.append(obj)
+            else:
+                raise NotImplementedError("No layer implemented for this object.")
     
     def remove(self, *objects: GraphObject):
         for obj in objects:
-            self.graph_objects.remove(obj)
+            if isinstance(obj.drawable, (Curve, Circle, LineSegment)):
+                self.graph_objects["Curves"].remove(obj)
+            elif isinstance(obj.drawable, Point):
+                self.graph_objects["Points"].remove(obj)
+            elif isinstance(obj.drawable, Label):
+                self.labels.remove(obj)
+            else:
+                raise NotImplementedError("No layer implemented for this object.")
     
     def clear(self):
-        self.graph_objects.clear()
-
-    def __iter__(self):
-        return iter(self.graph_objects)
+        for key in self.graph_objects:
+            self.graph_objects[key] = []
 
     def __len__(self):
-        return len(self.graph_objects)
+        res = 0
+        for key in self.graph_objects:
+            res += len(self.graph_objects[key])
+        return res
     
     def __getitem__(self, index):
         return self.graph_objects[index]

@@ -8,8 +8,6 @@ app.renderer.default_GridStyle.color = GREEN
 app.renderer.default_GridStyle.minor_color = RED
 app.renderer.default_GridStyle.minor_visible = True
 
-a = Point(0,0)
-app.add_object(a, color=BLUE, radius_px=5, draggable=True, labeled=True)
 tps = []
 def add_planet():
     global tps
@@ -35,5 +33,15 @@ def double_move_speed():
 def half_move_speed():
     app.camera_controller.speed *= 0.5
 
-app.key_binds = {pygame.K_0: add_planet, pygame.K_1: switch_minor, pygame.K_2: set_move_speed, pygame.K_3: double_move_speed, pygame.K_4: half_move_speed}
+app.key_binds = {pygame.K_0: add_planet, 
+                 pygame.K_1: switch_minor, 
+                 pygame.K_2: set_move_speed, 
+                 pygame.K_3: double_move_speed, 
+                 pygame.K_4: half_move_speed}
+
+a = Point(0,0)
+app.add_object(a, draggable=True, color=BLUE)
+app.add_object((X - Value(lambda: a.x))**2 + Value(lambda: a.y), color=RED)
+app.add_object(Label(5,5,"Hello there"), font_size=36, color=GREEN)
+app.add_object(Point(2,2), radius_px=10, color=GREEN, draggable=True)
 app.run()

@@ -1,6 +1,7 @@
 import math
 
 from functions.__init__ import *
+from objects.__init__ import *
 
 class Analyzer:
 
@@ -104,7 +105,7 @@ class Analyzer:
 
         return minX, f.evaluate(minX)
 
-    def derivative_x(self, f: Function, x, acc: float = 0.000001):
+    def function_derivative(self, f: Function, x, acc: float = 0.000001):
         if isinstance(x, Value):
             x = x.evaluate(0)
         x1 = x - acc
@@ -113,4 +114,15 @@ class Analyzer:
         y2 = f.evaluate(x2)
 
         return (y2 - y1) / (x2 - x1)
+
+    def point_from_function(self, f: Function, point: Point):
+        if isinstance(point, tuple):
+            point = Point(*point)
+
+        if f.evaluate(point.x) == point.y:
+            return True
+        else:
+            return abs(f.evaluate(point.x) - point.y)
+
+        
 
