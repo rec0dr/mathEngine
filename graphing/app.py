@@ -193,8 +193,9 @@ class GraphApp:
         """Standard procedure for drawing all non-default objects in the app."""
 
         for layer in self.graph_manager.graph_objects:
-            for object in self.graph_manager.graph_objects[layer]:
-                self.renderer.draw_graph(object)
+            if layer != "Labels":
+                for object in self.graph_manager.graph_objects[layer]:
+                    self.renderer.draw_graph(object)
 
     def handle_settings(self):
         """Procedure for handling all custom settings."""
@@ -280,26 +281,27 @@ class GraphApp:
         self.renderer.clear_UI()
 
         for layer in self.graph_manager.graph_objects:
-            for graph in self.graph_manager.graph_objects[layer]:
-                if isinstance(graph.style, Style):
-                    if graph.style.show_ui:
-                        name = ""
-                        if graph.style.show_type:
-                            for cls in type(graph.drawable).__mro__:
-                                if cls in NAME_MAP:
-                                    graph_name = NAME_MAP[cls]
-                                    break
-                            name = f"{graph_name}"
-                            if graph.style.name != "":
-                                name = name + " "
-                        name = name + f"{graph.style.name}: {str(graph.drawable)}"
+            if layer != "Labels":
+                for graph in self.graph_manager.graph_objects[layer]:
+                    if isinstance(graph.style, Style):
+                        if graph.style.show_ui:
+                            name = ""
+                            if graph.style.show_type:
+                                for cls in type(graph.drawable).__mro__:
+                                    if cls in NAME_MAP:
+                                        graph_name = NAME_MAP[cls]
+                                        break
+                                name = f"{graph_name}"
+                                if graph.style.name != "":
+                                    name = name + " "
+                            name = name + f"{graph.style.name}: {str(graph.drawable)}"
 
-                        self.renderer.add_UI_line(None, None, name, None, "NW")
+                            self.renderer.add_UI_line(None, None, name, None, "NW")
 
         self.renderer.draw_UI()
 
     def draw_labels(self):
-        for label in self.graph_manager.labels:
+        for label in self.graph_manager.graph_objects["Labels"]:
             self.renderer.draw_graph(label)
 
     def run(self):

@@ -8,8 +8,7 @@ from .graph_object import GraphObject
 
 class GraphManager:
     def __init__(self):
-        self.graph_objects = {"Curves": [], "Points": []}
-        self.labels = []
+        self.graph_objects = {"Curves": [], "Points": [], "Labels": []}
     
     def add(self, *objects: GraphObject):
         for obj in objects:
@@ -19,7 +18,7 @@ class GraphManager:
             elif isinstance(obj.drawable, Point):
                 self.graph_objects["Points"].append(obj)
             elif isinstance(obj.drawable, Label):
-                self.labels.append(obj)
+                self.graph_objects["Labels"].append(obj)
             else:
                 raise NotImplementedError("No layer implemented for this object.")
     
@@ -30,7 +29,7 @@ class GraphManager:
             elif isinstance(obj.drawable, Point):
                 self.graph_objects["Points"].remove(obj)
             elif isinstance(obj.drawable, Label):
-                self.labels.remove(obj)
+                self.graph_objects["Labels"].remove(obj)
             else:
                 raise NotImplementedError("No layer implemented for this object.")
     

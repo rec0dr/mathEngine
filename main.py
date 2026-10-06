@@ -40,7 +40,7 @@ app.key_binds = {pygame.K_0: add_planet,
                  pygame.K_4: half_move_speed}
 
 a = Point(0,0)
-app.add_object(a, draggable=True, color=BLUE)
+app.add_object(a, radius_px=5, draggable=True, color=BLUE)
 app.add_object((X - Value(lambda: a.x))**2 + Value(lambda: a.y), color=RED)
 app.add_object(Label(5,5,"Hello there"), font_size=36, color=GREEN)
 app.add_object(Point(2,2), radius_px=10, color=GREEN, draggable=True)
