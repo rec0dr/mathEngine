@@ -152,14 +152,17 @@ class CameraController:
                 self.locked = False
             else:
                 self.locked = True
+
+        # KEYBOARD INPUTS - don't care about locked status
+        self.handle_panning_keys(dt)
+        self.handle_zooming_keys(dt)
+        self.handle_speed_change(events)
+
+        # MOUSE INPUTS & ANIMATIONS - locked does matter
         if not self.locked:
-            self.handle_panning_keys(dt)
             self.handle_panning_mouse()
             self.handle_anim_keys(events)
-            self.handle_zooming_keys(dt)
             self.handle_zooming_mouse(events)
-
-            self.handle_speed_change(events)
 
             if self.fixed_center is not None:
                 #print(self.fixed_center)

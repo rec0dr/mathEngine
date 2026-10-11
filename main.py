@@ -39,9 +39,7 @@ app.key_binds = {pygame.K_0: add_planet,
                  pygame.K_3: double_move_speed, 
                  pygame.K_4: half_move_speed}
 
-a = Point(0,0)
-app.add_object(a, radius_px=5, draggable=True, color=BLUE)
-app.add_object((X - Value(lambda: a.x))**2 + Value(lambda: a.y), color=RED)
-app.add_object(Label(5,5,"Hello there"), font_size=36, color=GREEN)
-app.add_object(Point(2,2), radius_px=10, color=GREEN, draggable=True)
+theta = Value(0)
+app.add_animation(theta, "value", 20*PI, 5, EaseType.SIN_IN_OUT)
+app.add_object(Polar(X, 0, theta))
 app.run()
