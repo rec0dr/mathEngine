@@ -10,8 +10,11 @@ class Parametric(Curve):
         if isinstance(self.argY, (int, float)):
             self.argY = Value(self.argY)
             
-        self.tMin = tMin
-        self.tMax = tMax
+        self.tMin, self.tMax = tMin, tMax
+        if isinstance(self.tMin, (int, float)):
+            self.tMin = Value(self.tMin)
+        if isinstance(self.tMax, (int, float)):
+            self.tMax = Value(self.tMax)
 
         super().__init__()
 
@@ -25,9 +28,9 @@ class Parametric(Curve):
 
     def point(self, t):
         return self.evaluate(t)
-    
+
     def parameter_interval(self, renderer):
-        return self.tMin, self.tMax
+        return (self.tMin.evaluate(), self.tMax.evaluate())
 
     def inverse(self, tMin=None, tMax=None):
 
