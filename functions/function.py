@@ -286,6 +286,61 @@ class Value(Function):
     def __str__(self):
         return f"{self.value:.3f}"
 
+    def __add__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: self.evaluate() + other.evaluate())
+        elif isinstance(other, (float, int)):
+            return Value(lambda: self.evaluate()+ other)
+        else:
+            raise TypeError
+
+    def __radd__(self, other):
+        return self + other
+
+    def __sub__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: self.evaluate() - other.evaluate())
+        elif isinstance(other, (float, int)):
+            
+            return Value(lambda: self.evaluate() - other)
+        else:
+            raise TypeError
+
+    def __rsub__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: other.evaluate() - self.evaluate())
+        elif isinstance(other, (float, int)):
+            return Value(lambda: other - self.evaluate())
+        else:
+            raise TypeError
+
+    def __mul__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: self.evaluate() * other.evaluate())
+        elif isinstance(other, (float, int)):
+            return Value(lambda: self.evaluate() * other)
+        else:
+            raise TypeError
+
+    def __rmul__(self, other):
+        return self * other
+
+    def __truediv__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: self.evaluate() / other.evaluate())
+        elif isinstance(other, (float, int)):
+            return Value(lambda: self.evaluate() / other)
+        else:
+            raise TypeError
+
+    def __rtruediv__(self, other):
+        if isinstance(other, Value):
+            return Value(lambda: other.evaluate() / self.evaluate())
+        elif isinstance(other, (float, int)):
+            return Value(lambda: other / self.evaluate())
+        else:
+            raise TypeError
+
     def evaluate(self, x=0):
         return self.value
 

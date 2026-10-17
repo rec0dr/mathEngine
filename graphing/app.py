@@ -60,6 +60,7 @@ class GraphApp:
         self.key_binds = {}
 
         self.graphObjects = []
+        self.extraUILines = []
 
         self.show_camera_center = show_camera_center
         self.allow_mouse = True
@@ -298,7 +299,32 @@ class GraphApp:
 
                             self.renderer.add_UI_line(None, None, name, None, "NW")
 
+        for line in self.extraUILines:
+            marginX, marginY, txt, text_style, corner = line
+            if callable(marginX):
+                marginX = marginX()
+            elif isinstance(marginX, Value):
+                marginX = marginX.value
+
+            if callable(marginY):
+                marginY = marginY()
+            elif isinstance(marginY, Value):
+                marginY = marginY.value
+                
+            if callable(txt):
+                txt = txt()
+            self.renderer.add_UI_line(marginX, marginY, txt, text_style, corner)
+
         self.renderer.draw_UI()
+
+    def add_UI_line(self, marginX: float = None, marginY: float = None, txt: str = "", text_style: TextStyle = None, corner: str = "NW"):
+        if marginX is None:
+            marginX = self.viewport.ui_scale(20)
+        if marginY is None:
+            marginY = self.viewport.ui_scale(20)
+        if text_style is None:
+            text_style = self.renderer.default_UITextStyle
+        self.extraUILines.append([marginX, marginY, txt, text_style, corner])
 
     def draw_labels(self):
         for label in self.graph_manager.graph_objects["Labels"]:

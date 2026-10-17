@@ -28,8 +28,18 @@ app.key_binds = {pygame.K_1: switch_minor,
                  pygame.K_3: double_move_speed, 
                  pygame.K_4: half_move_speed}
 
-theta = Point(0,0)
-x = Value(lambda: theta.x)
-app.add_object(theta, draggable=True, lock_type=LockType.Y, color=BLUE, radius_px=8)
-app.add_object(Polar(5*SIN(x*X), 0, 2*PI))
+p1 = Point(1,2)
+p2 = Point(5,3)
+sum = Value(lambda: p1.x) * Value(lambda: p2.x)
+p3 = Point(Value(lambda: p1.x) * Value(lambda: p2.x), Value(lambda: p1.y) * Value(lambda: p2.y))
+
+print(type(Value(lambda: p1.x) * Value(lambda: p2.x)))
+
+app.add_object(p1, radius_px=8, draggable=True)
+app.add_object(p2, radius_px=8, draggable=True)
+app.add_object(p3, radius_px=10, color=GREEN)
+app.add_object(LineSegment(p1,p2))
+app.add_object(LineSegment(p2,p3))
+app.add_object(LineSegment(p3,p1))
+
 app.run()
