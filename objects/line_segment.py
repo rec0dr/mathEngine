@@ -32,6 +32,11 @@ class LineSegment:
                 lineset.append(cls(previous_point, point))
             previous_point = point
         return lineset
+
+    @classmethod
+    def from_origin(cls, pos1):
+        return cls((0,0), pos1)
+    
     def evaluate_point(self, point):
         x, y = point
 

@@ -50,12 +50,15 @@ class GraphApp:
         self.renderer = Renderer(self.screen, self.viewport, self.graph_manager, self.animation_manager, self.camera_controller)
         self.analyzer = Analyzer()
 
+        self.fps = fps
+        self.time_ran = 0
+        self.dt = 0
+
         self.running = False
         self.width = width
         self.height = height
         self.pan_sensitivity = pan_sensitivity
         self.zoom_sensitivity = zoom_sensitivity
-        self.fps = fps
         self.slide_multi = 1
         self.key_binds = {}
 
@@ -76,6 +79,7 @@ class GraphApp:
     
     def begin_frame(self):
         """Runs at the beginning of each frame by clearing the renderer, drawing the axes, and drawing the grid."""
+        self.dt = self.clock.tick(self.fps) / 1000
 
         self.renderer.clear()
         self.renderer.draw_axes()
@@ -279,7 +283,8 @@ class GraphApp:
         """Runs every frame to draw the UI - default and user-created."""
 
         self.renderer.fps = round(self.clock.get_fps(), 3)
-        self.renderer.clear_UI()
+        self.renderer.time_ran = round(pygame.time.get_ticks() / 1000)
+        self.renderer.reset_UI()
 
         for layer in self.graph_manager.graph_objects:
             if layer != "Labels":
@@ -310,7 +315,7 @@ class GraphApp:
                 marginY = marginY()
             elif isinstance(marginY, Value):
                 marginY = marginY.value
-                
+
             if callable(txt):
                 txt = txt()
             self.renderer.add_UI_line(marginX, marginY, txt, text_style, corner)
@@ -340,11 +345,10 @@ class GraphApp:
 
         self.running = True
         while self.running:
-            dt = self.clock.tick(self.fps) / 1000
             self.handle_inputs(self.clock.get_fps())
             self.begin_frame()
 
-            self.update_animations(dt)
+            self.update_animations(self.dt)
             self.draw_objects()
             self.handle_settings()
             self.move_dragged()

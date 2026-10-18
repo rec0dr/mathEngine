@@ -43,6 +43,7 @@ class Renderer:
         self.tick_font2                 = pygame.font.SysFont(None, self.viewport.ui_scale(15))
 
         self.fps                        = fps
+        self.time_ran                   = 0
         self.ui_space                   = {"NW": [], "NE": [], "SW": [], "SE": []}
 
         # Defaults
@@ -378,7 +379,8 @@ class Renderer:
             point_style.border_width_px = 0
         if point_style.visible:
             if point_style.hovered:
-                pygame.draw.circle(self.overlay, (255,255,255,255), (x, y), point_style.radius_px, point_style.border_width_px)
+                hovered_color = (255 - i for i in point_style.color)
+                pygame.draw.circle(self.overlay, (*hovered_color, point_style.opacity), (x, y), point_style.radius_px, point_style.border_width_px)
             else:
                 pygame.draw.circle(self.overlay, (*point_style.color, point_style.opacity), (x, y), point_style.radius_px, point_style.border_width_px)
         if point_style.labeled:
@@ -494,7 +496,7 @@ class Renderer:
         else:
             raise TypeError
 
-    def clear_UI(self):
+    def reset_UI(self):
         text_style = TextStyle((255, 0, 0), font_size=self.viewport.ui_scale(18), bold=True)
         x_margin = self.viewport.ui_scale(20)
         y_margin = self.viewport.ui_scale(20)
@@ -504,10 +506,14 @@ class Renderer:
                                 [x_margin, y_margin, f"Mouse Pos: ({mouse_pos[0]:g}, {mouse_pos[1]:g})", text_style],
                                 [x_margin, y_margin, f"Move Speed: {self.camera_controller.speed:g}", text_style]]
         self.ui_space["NE"] = [[x_margin, y_margin, f"FPS: {self.fps}", text_style],
-                               [x_margin, y_margin, f"Entities: {len(self.graph_manager)}", text_style]]
+                               [x_margin, y_margin, f"Entities: {len(self.graph_manager)}", text_style],
+                               [x_margin, y_margin, f"Time Ran: {self.time_ran}", text_style]]
 
         self.ui_space["SW"] = []
         self.ui_space["SE"] = []
+
+    def clear_UI(self):
+        self.ui_space = {"NW": [], "NE": [], "SW": [], "SE": []}
         
 
 

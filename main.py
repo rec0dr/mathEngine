@@ -31,15 +31,14 @@ app.key_binds = {pygame.K_1: switch_minor,
 p1 = Point(1,2)
 p2 = Point(5,3)
 sum = Value(lambda: p1.x) * Value(lambda: p2.x)
-p3 = Point(Value(lambda: p1.x) * Value(lambda: p2.x), Value(lambda: p1.y) * Value(lambda: p2.y))
+p3 = Value(lambda: p1.x) * Value(lambda: p2.x) + Value(lambda: p1.y) * Value(lambda: p2.y)
 
 print(type(Value(lambda: p1.x) * Value(lambda: p2.x)))
 
 app.add_object(p1, radius_px=8, draggable=True)
 app.add_object(p2, radius_px=8, draggable=True)
-app.add_object(p3, radius_px=10, color=GREEN)
-app.add_object(LineSegment(p1,p2))
-app.add_object(LineSegment(p2,p3))
-app.add_object(LineSegment(p3,p1))
+app.add_object(p3, color=GREEN, name="Dot Product", show_type=False)
+app.add_object(LineSegment.from_origin(p1))
+app.add_object(LineSegment.from_origin(p2))
 
 app.run()
