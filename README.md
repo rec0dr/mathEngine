@@ -66,14 +66,21 @@ the main.py file. (Once again, documentation will be added shortly). Until then,
 the default controls have been listed below.
 
 **W** - Move in +y direction
+
 **S** - Move in -y direction
+
 **D** - Move in +x direction
+
 **A** - Move in -x direction
+
 **Z** - Zoom out
+
 **X** - Zoom in
 
 **,** - Decrease movement speed
+
 **.** - Increase movement speed
+
 **/** - Reset movement speed
 
 **C** - Clear all objects
