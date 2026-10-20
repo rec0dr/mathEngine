@@ -9,6 +9,11 @@ interactive application development.
 > **Project status:** In active development. Features and internal
 > design may change as the project evolves.
 
+## Preview
+! [Simple Graph in Math Engine](images/sample1.png)
+
+! [Different Object Types in Math Engine](images/sample2.png)
+
 ## Current Features
 
 -   **Graph rendering** for mathematical curves.
