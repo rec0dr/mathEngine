@@ -51,24 +51,28 @@ through iterative development.
 -   **Editor:** Visual Studio Code
 -   **Version control:** Git and GitHub
 
-## Running the Project
+### Requirements
 
-Running MathEngine is simple; follow the steps below.
+-   **Python 3.12.13**
+-   **Pygame 2.6.1**
+
+## Setup
+
+Follow the steps below to run Math Engine
 
 1.  Clone or download this repository.
-2.  Create a Python virtual environment, or activate the provided venv_win or venv_mac environment 
-    if it is compatible with your system.
-3.  Install the project's dependencies.
+2.  Create and activate a Python 3.12.13 virtual environment.
+3.  Install Pygame:
+
+    ```bash
+    python -m pip install pygame==2.6.1
 4.  Run main.py to launch the application. 
-    The file currently includes a sample implementation demonstrating how to create and display objects. 
-    The API and object-creation workflow are still being documented.
 
 ## Controls
 
 The application supports viewport navigation, including panning and
 zooming, speed changes, and object clears. Keybinds may also be customized via
-the main.py file. (Once again, documentation will be added shortly). Until then,
-the default controls have been listed below.
+the main.py file. The default controls have been listed below.
 
 **W** - Move in +y direction
 
@@ -89,6 +93,8 @@ the default controls have been listed below.
 **/** - Reset movement speed
 
 **C** - Clear all objects
+
+**Q** - Quit application
 
 ## Roadmap
 
