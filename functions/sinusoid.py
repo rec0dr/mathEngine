@@ -1,3 +1,14 @@
+"""
+Simple class for trig functions.
+
+Allows the user to implement a trig function
+of any other function for rendering.
+
+Author: Evan Le
+Date: 2026-10-21
+License: Personal Use
+"""
+
 from .function import Function, Combination, Value, Operation
 from .function import Variable
 from enum import Enum

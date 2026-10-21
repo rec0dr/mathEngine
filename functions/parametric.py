@@ -1,3 +1,14 @@
+"""
+Class for parametric functions.
+
+Defined as a pair of two functions,
+one as x(t) and another as y(t).
+
+Author: Evan Le
+Date: 2026-10-21
+License: Personal Use
+"""
+
 import math
 from .curve import Curve
 from .function import Value

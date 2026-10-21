@@ -1,3 +1,14 @@
+"""
+All commonly used symbols / helper variables for the user.
+
+Includes commonly used variables, trig functions,
+colors for function styles, and parametrics.
+
+Author: Evan Le
+Date: 2026-10-21
+License: Personal Use
+"""
+
 import math
 
 from .function import Variable

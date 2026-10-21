@@ -14,6 +14,7 @@ class Operation(Enum):
 # Function combination logic
 
 class Function(Curve):
+    """Basic class for any explicit function."""
 
     def __init__(self):
         super().__init__()
@@ -21,6 +22,7 @@ class Function(Curve):
     # Function combo logic
     
     def __add__(self, other):
+        """Adds two functions f + g to create a Combination object."""
         if isinstance(other, (int, float)):
             other = Value(other)
         return Combination(self, Operation.ADD, other)
@@ -29,6 +31,7 @@ class Function(Curve):
         return self.__add__(other)
     
     def __sub__(self, other):
+        """Subtracts two functions f - g to create a Combination object."""
         if isinstance(other, (int, float)):
             other = Value(other)
         return Combination(self, Operation.SUBTRACT, other)
@@ -39,6 +42,7 @@ class Function(Curve):
         return Combination(other, Operation.SUBTRACT, self)
     
     def __mul__(self, other):
+        """Multiplies two functions f * g to create a Combination object."""
         if isinstance(other, (int, float)):
             other = Value(other)
         return Combination(self, Operation.MULTIPLY, other)
@@ -47,6 +51,7 @@ class Function(Curve):
         return self.__mul__(other)
     
     def __truediv__(self, other):
+        """Divides two functions f / g to create a Combination object."""
         if isinstance(other, (int, float)):
             other = Value(other)
         return Combination(self, Operation.DIVIDE, other)
