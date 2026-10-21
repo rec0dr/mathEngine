@@ -1,6 +1,6 @@
 from helper import *
 
-width, height = (1000, 1000)
+width, height = (720, 720)
 scaleX, scaleY = (10,10)
 
 app = GraphApp(width, height, scaleX, scaleY, fps=500, pan_sensitivity=100, zoom_sensitivity=100, fixed_center = None)
@@ -9,16 +9,13 @@ app = GraphApp(width, height, scaleX, scaleY, fps=500, pan_sensitivity=100, zoom
 # app.renderer.default_xxxx = xxx
 app.renderer.default_GridStyle.color = GREEN
 app.renderer.default_GridStyle.minor_color = RED
+app.renderer.default_GridStyle.minor_opacity = 170
 app.renderer.default_GridStyle.minor_visible = True
 
 # Example 2: Adding Custom Keybinds
 # a) Define all your functions | 1 for each key
 def switch_minor():
     app.renderer.default_GridStyle.minor_visible = not app.renderer.default_GridStyle.minor_visible
-
-def set_move_speed():
-    speed = float(input("New move speed: "))
-    app.camera_controller.speed = speed
 
 def double_move_speed():
     app.camera_controller.speed *= 2
@@ -28,10 +25,9 @@ def half_move_speed():
 
 # b) Define how each key links up to a function
 # app.key_binds = {KEY_NAME: FUNCTION_NAME}
-app.key_binds = {pygame.K_1: switch_minor, 
-                 pygame.K_2: set_move_speed, 
-                 pygame.K_3: double_move_speed, 
-                 pygame.K_4: half_move_speed}
+app.key_binds = {pygame.K_1: switch_minor,  
+                 pygame.K_2: double_move_speed, 
+                 pygame.K_3: half_move_speed}
 
 # Example 3: Creating a Function
 # Simply define a variable as that function of X

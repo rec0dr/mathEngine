@@ -74,27 +74,22 @@ The application supports viewport navigation, including panning and
 zooming, speed changes, and object clears. Keybinds may also be customized via
 the main.py file. The default controls have been listed below.
 
-**W** - Move in +y direction
-
-**S** - Move in -y direction
-
-**D** - Move in +x direction
-
-**A** - Move in -x direction
-
-**Z** - Zoom out
-
-**X** - Zoom in
-
-**,** - Decrease movement speed
-
-**.** - Increase movement speed
-
-**/** - Reset movement speed
-
-**C** - Clear all objects
-
-**Q** - Quit application
+| Keybind/Control | Action |
+| :---: | :---: |
+| **W / UP** | Move in +y direction |
+| **S / DOWN** | Move in -y direction |
+| **D / RIGHT** | Move in +x direction |
+| **A / LEFT** | Move in -x direction |
+| **Z** | Zoom out |
+| **SHIFT+Z** | Zoom out from camera center |
+| **X** | Zoom in |
+| **SHIFT+X** | Zoom in to camera center |
+| **R** | Pan to home position |
+| **,** | Decrease movement speed |
+| **.** | Increase movement speed |
+| **/** | Reset movement speed |
+| **C** | Clear all objects |
+| **Q** | Quit application |
 
 ## Roadmap
 
